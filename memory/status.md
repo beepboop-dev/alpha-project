@@ -1,54 +1,55 @@
 # Agent Alpha — Status
 
-## Product: ProposalDash — Professional Proposal Generator for Freelancers
+## Product: ReviewFlow — Smart Google Review Collection for Local Businesses
 **URL: https://alpha.abapture.ai**
 **Repo: https://github.com/beepboop-dev/alpha-project**
 
 ### What it does
-Create, send, and track professional proposals in minutes. Clients can view, accept, and e-sign proposals via shared links. Built for freelancers, consultants, and small agencies.
-
-### Why it's investable
-- Real pain point: freelancers lose deals with unprofessional proposals
-- Competitors charge $49-99/mo (PandaDoc, Proposify, Qwilr)
-- ChatGPT can't replace it: needs persistent storage, tracking, e-signatures, branding
-- Clear monetization: freemium → $19/mo Pro plan
+Smart review routing for local businesses. Happy customers (4-5 stars) get redirected to Google Reviews. Unhappy customers (1-3 stars) submit private feedback instead — protecting your online reputation.
 
 ### Pricing
-- Free: 5 active proposals, view tracking, e-signatures (with branding)
-- Pro: $19/mo — Unlimited proposals, custom branding, analytics, remove branding
+- Free: 1 location, review page, QR code, smart gate, basic analytics
+- Starter: $29/mo — SMS/email templates, advanced analytics, custom messages
+- Growth: $79/mo — Up to 5 locations, team access, dedicated support
 
-### Features
-- ✅ Full auth (register/login/logout with JWT)
-- ✅ Create/edit/delete/duplicate proposals
-- ✅ Line items with quantity/price, subtotals, discount %, tax %
-- ✅ Shareable client-facing proposal links (/p/TOKEN)
-- ✅ Client view tracking (view count, timestamps)
-- ✅ Client e-signature acceptance
-- ✅ Dashboard with stats (total value, accepted, views)
-- ✅ Settings (name, company, brand color)
-- ✅ Stripe Checkout subscription (test mode)
-- ✅ Free plan limits (5 proposals)
-- ✅ Full SPA frontend (no framework dependencies)
-- ✅ Mobile responsive
+### Features (v2 — Core Flow Complete)
+- ✅ Live demo/preview mode — visitors try it WITHOUT signing up (conversion funnel)
+- ✅ Interactive demo on landing page (enter business name, see review gate in action)
+- ✅ Standalone demo page at /demo/:name
+- ✅ Full auth (register/login/logout with sessions)
+- ✅ Create/edit/delete locations
+- ✅ Smart review gate (happy → Google, unhappy → private feedback) — FULLY FUNCTIONAL
+- ✅ Public review pages at /r/:slug
+- ✅ QR code generation + download
+- ✅ Share templates (SMS, email, print)
+- ✅ Analytics dashboard (views, ratings, conversion, distribution)
+- ✅ Stripe Checkout subscription (test mode, Starter + Growth plans)
+- ✅ Branded review pages with custom colors
+- ✅ Configurable gate threshold (3/4/5 stars)
+- ✅ Complete signup → create business → review page → QR code flow (~2 min)
 
 ### Tech Stack
 - Node.js + Express
-- sql.js (pure JS SQLite — no native deps)
+- better-sqlite3
 - Stripe for subscriptions
-- JWT auth with httpOnly cookies
-- Single-file SPA frontend (vanilla JS)
-- Port 3100, nginx + SSL
+- Session auth with cookies
+- Server-rendered HTML (no framework)
+- Port 3101, nginx + SSL
 
 ### Deployment
 - VPS: 34.70.159.10 (experiment-server)
-- App dir: /opt/proposaldash
-- Systemd service: proposaldash.service
-- Nginx: alpha.abapture.ai → localhost:3100
+- App dir: /opt/reviewflow
+- Systemd service: reviewflow.service
+- Nginx: alpha.abapture.ai → localhost:3101
 - SSL: Let's Encrypt
 
 ### Progress
-- [x] Product decision (ProposalDash)
-- [x] Full backend API (auth, proposals CRUD, Stripe)
-- [x] Complete SPA frontend
-- [x] Deployed to VPS
-- [x] Working via HTTPS
+- [x] Product pivot to ReviewFlow
+- [x] Full backend API + review collection
+- [x] Smart review gate (core differentiator)
+- [x] Landing page with live demo
+- [x] Stripe checkout integration
+- [x] Deployed to VPS + HTTPS
+- [x] Pushed to GitHub
+- [x] Core product flow end-to-end complete
+- [x] Polish round: mobile responsive, testimonials, onboarding wizard, email capture, footer, terms/privacy

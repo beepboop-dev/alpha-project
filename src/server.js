@@ -1,28 +1,989 @@
 const express = require('express');
+const Database = require('better-sqlite3');
+const QRCode = require('qrcode');
+const Stripe = require('stripe');
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
+const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3100;
+const PORT = 3101;
+const BASE_URL = process.env.BASE_URL || 'https://alpha.abapture.ai';
 
-// Stripe webhook needs raw body
-app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({ secret: 'reviewflow-k8x7m2p', resave: false, saveUninitialized: false, cookie: { maxAge: 30*24*60*60*1000 } }));
 
-// Wait for DB then start
-const db = require('./db/schema');
-db.ready.then(() => {
-  app.use('/api/auth', require('./routes/auth'));
-  app.use('/api/proposals', require('./routes/proposals'));
-  app.use('/api/stripe', require('./routes/stripe'));
+const db = new Database(path.join(__dirname, 'reviewflow.db'));
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, business_name TEXT, plan TEXT DEFAULT 'free', stripe_customer_id TEXT, stripe_subscription_id TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+  CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, business_name TEXT NOT NULL, business_type TEXT DEFAULT '', google_review_url TEXT NOT NULL, primary_color TEXT DEFAULT '#2563eb', thank_you_message TEXT DEFAULT 'Thank you for your feedback!', gate_threshold INTEGER DEFAULT 4, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id));
+  CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, location_id TEXT NOT NULL, rating INTEGER NOT NULL, feedback TEXT DEFAULT '', customer_name TEXT DEFAULT '', customer_email TEXT DEFAULT '', redirected_to_google INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (location_id) REFERENCES locations(id));
+  CREATE TABLE IF NOT EXISTS page_views (id INTEGER PRIMARY KEY AUTOINCREMENT, location_id TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (location_id) REFERENCES locations(id));
+  CREATE TABLE IF NOT EXISTS email_signups (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+  CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, location_id TEXT NOT NULL, type TEXT DEFAULT 'negative_review', message TEXT, read INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id));
+`);
+
+// Add new columns if missing
+try { db.exec("ALTER TABLE locations ADD COLUMN header_text TEXT DEFAULT ''"); } catch(e) {}
+try { db.exec("ALTER TABLE locations ADD COLUMN logo_url TEXT DEFAULT ''"); } catch(e) {}
+try { db.exec("ALTER TABLE locations ADD COLUMN color_theme TEXT DEFAULT 'blue'"); } catch(e) {}
+
+function requireAuth(req, res, next) { if (!req.session.userId) return res.redirect('/login'); next(); }
+function getUser(req) { if (!req.session.userId) return null; return db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId); }
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function css() {
+  return `<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1e293b;line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;font-weight:600;font-size:15px;text-decoration:none;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-secondary{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}.btn-secondary:hover{background:#e2e8f0}
+.btn-danger{background:#ef4444;color:#fff}.btn-sm{padding:8px 16px;font-size:13px}
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px;margin-bottom:16px}
+input,select,textarea{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#374151}
+.form-group{margin-bottom:20px}.form-hint{font-size:13px;color:#6b7280;margin-top:4px}
+.alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px}
+.alert-error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.alert-success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;text-align:center}
+.stat-value{font-size:32px;font-weight:700;color:#1e293b}.stat-label{font-size:13px;color:#64748b;margin-top:4px}
+.nav{background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 0}
+.nav-inner{display:flex;justify-content:space-between;align-items:center}
+.nav-brand{font-size:20px;font-weight:700;color:#2563eb;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:#64748b;text-decoration:none;font-size:14px;font-weight:500}.nav-links a:hover{color:#1e293b}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.badge-free{background:#f1f5f9;color:#64748b}.badge-starter{background:#dbeafe;color:#2563eb}.badge-growth{background:#fef3c7;color:#d97706}
+.site-footer{background:#1e293b;color:#94a3b8;padding:60px 0 32px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-grid h4{color:#fff;font-size:15px;margin-bottom:16px}
+.footer-grid a{color:#94a3b8;text-decoration:none;display:block;font-size:14px;line-height:2}.footer-grid a:hover{color:#fff}
+.footer-brand{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}
+.footer-brand-desc{font-size:14px;line-height:1.6;margin-bottom:16px}
+.footer-social{display:flex;gap:16px}
+.footer-social a{display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:#334155;border-radius:8px;color:#94a3b8;font-size:18px;transition:all .2s}.footer-social a:hover{background:#2563eb;color:#fff}
+.footer-bottom{border-top:1px solid #334155;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px}
+.footer-bottom a{color:#94a3b8;text-decoration:none;margin-left:16px}.footer-bottom a:hover{color:#fff}
+@media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.nav-links{gap:12px}.footer-grid{grid-template-columns:1fr 1fr}.footer-bottom{flex-direction:column;text-align:center}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px}.btn-sm{padding:6px 12px;font-size:12px}}
+</style>`;
+}
+
+function footer() {
+  return `<footer class="site-footer"><div class="container">
+<div class="footer-grid">
+<div><div class="footer-brand">⭐ ReviewFlow</div>
+<div class="footer-brand-desc">Help your local business collect more 5-star Google reviews with smart review routing.</div>
+<div class="footer-social">
+<a href="#" title="Twitter">𝕏</a>
+<a href="#" title="Facebook">f</a>
+<a href="#" title="LinkedIn">in</a>
+<a href="#" title="Instagram">📷</a>
+</div></div>
+<div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#demo">Live Demo</a><a href="/signup">Get Started</a></div>
+<div><h4>Resources</h4><a href="#">Help Center</a><a href="#">Blog</a><a href="#">API Docs</a><a href="#">Integrations</a></div>
+<div><h4>Company</h4><a href="#">About Us</a><a href="#">Contact</a><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></div>
+</div>
+<div class="footer-bottom"><span>&copy; 2026 ReviewFlow. All rights reserved.</span>
+<div><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@reviewflow.com">Contact</a></div>
+</div></div></footer>`;
+}
+
+// ===== LANDING PAGE =====
+app.get('/', (req, res) => {
+  res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ReviewFlow — Get More Google Reviews for Your Business</title>
+<meta name="description" content="Help your local business collect more 5-star Google reviews with smart review routing, QR codes, and analytics.">
+${css()}
+<style>
+.hero{padding:80px 0;text-align:center;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%)}
+.hero h1{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:20px}.hero h1 span{color:#2563eb}
+.hero p{font-size:20px;color:#64748b;max-width:600px;margin:0 auto 32px}
+.features{padding:80px 0}.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.feature-card{text-align:center;padding:32px}.feature-icon{font-size:48px;margin-bottom:16px}
+.feature-card h3{font-size:20px;margin-bottom:8px}.feature-card p{color:#64748b;font-size:15px}
+.how-it-works{padding:80px 0;background:#f8fafc}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:40px}
+.step{text-align:center}.step-number{width:48px;height:48px;border-radius:50%;background:#2563eb;color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step h3{margin-bottom:8px}.step p{color:#64748b;font-size:15px}
+.pricing-section{padding:80px 0}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:900px;margin:40px auto 0}
+.pricing-card{border:2px solid #e2e8f0;border-radius:16px;padding:32px;text-align:center}
+.pricing-card.featured{border-color:#2563eb;position:relative}
+.pricing-card.featured::before{content:'MOST POPULAR';position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#2563eb;color:#fff;padding:4px 16px;border-radius:999px;font-size:12px;font-weight:700}
+.pricing-card h3{font-size:22px;margin-bottom:8px}
+.pricing-card .price{font-size:42px;font-weight:800;margin:16px 0 8px}.pricing-card .price span{font-size:16px;font-weight:400;color:#64748b}
+.pricing-card ul{list-style:none;text-align:left;margin:24px 0}
+.pricing-card li{padding:8px 0;font-size:15px;color:#475569}.pricing-card li::before{content:'✓';color:#22c55e;font-weight:700;margin-right:8px}
+.cta{padding:80px 0;text-align:center;background:#1e293b;color:#fff}
+.cta h2{font-size:36px;margin-bottom:16px}.cta p{color:#94a3b8;font-size:18px;margin-bottom:32px}
+footer{padding:40px 0;text-align:center;color:#94a3b8;font-size:14px;border-top:1px solid #e2e8f0}
+@media(max-width:768px){.hero h1{font-size:32px}.hero p{font-size:16px}.features-grid,.steps,.pricing-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.testimonials-grid{grid-template-columns:1fr !important}}
+@media(max-width:480px){.hero h1{font-size:26px}.hero .btn{display:block;margin:8px auto;width:90%;text-align:center}}
+</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
+<div class="nav-links"><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+
+<section class="hero"><div class="container">
+<h1>Get More <span>5-Star Reviews</span><br>Without the Hassle</h1>
+<p>ReviewFlow helps local businesses collect Google reviews on autopilot. Smart review routing sends happy customers to Google — and catches unhappy ones before they go public.</p>
+<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Start Collecting Reviews — Free</a>
+<a href="#demo" class="btn btn-secondary" style="padding:16px 32px;font-size:17px;margin-left:12px">Try Live Demo ↓</a>
+<p style="font-size:14px;color:#94a3b8;margin-top:12px">No credit card required · Set up in 2 minutes</p>
+</div></section>
+
+<section id="demo" style="padding:60px 0;background:#fff"><div class="container" style="max-width:900px;margin:0 auto">
+<h2 style="text-align:center;font-size:36px;margin-bottom:8px">Try It Right Now</h2>
+<p style="text-align:center;color:#64748b;font-size:18px;margin-bottom:32px">Enter your business name to see what your review page would look like — no signup needed.</p>
+<div style="display:flex;gap:12px;max-width:500px;margin:0 auto 32px;flex-wrap:wrap">
+<input type="text" id="demo-name" placeholder="e.g. Joe's Coffee Shop" style="flex:1;padding:14px 18px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;min-width:200px" oninput="updateDemo()">
+<input type="color" id="demo-color" value="#2563eb" style="width:52px;height:52px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;padding:4px" oninput="updateDemo()">
+</div>
+<div style="display:flex;justify-content:center"><div id="demo-preview" style="background:#f8fafc;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.12);max-width:420px;width:100%;padding:40px 32px;text-align:center;transition:all .3s">
+<div id="dp-name" style="font-size:24px;font-weight:700;color:#1e293b;margin-bottom:8px">Your Business Name</div>
+<div style="font-size:18px;color:#475569;margin-bottom:24px">How was your experience?</div>
+<div style="display:flex;justify-content:center;gap:8px;margin-bottom:24px" id="demo-stars">
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(1)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(2)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(3)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(4)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(5)">⭐</span>
+</div>
+<div id="demo-result" style="display:none"></div>
+<div style="margin-top:20px;font-size:12px;color:#cbd5e1">Powered by <span style="color:#94a3b8">ReviewFlow</span></div>
+</div></div>
+<div style="text-align:center;margin-top:32px">
+<a href="#" onclick="var n=document.getElementById('demo-name').value||'Your Business';window.open('/demo/'+encodeURIComponent(n)+'?color='+encodeURIComponent(document.getElementById('demo-color').value),'_blank');return false" class="btn btn-secondary" style="padding:14px 28px;font-size:16px;margin-right:12px">Open Full Preview ↗</a>
+<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Create Your Review Page Free →</a></div>
+</div>
+<script>
+function updateDemo(){var n=document.getElementById('demo-name').value||'Your Business Name';document.getElementById('dp-name').textContent=n;resetDemo()}
+function resetDemo(){document.querySelectorAll('.dstar').forEach(s=>{s.style.filter='grayscale(1) opacity(.3)';s.style.transform='scale(1)'});document.getElementById('demo-result').style.display='none'}
+function demoPick(r){var stars=document.querySelectorAll('.dstar');stars.forEach((s,i)=>{s.style.filter=i<r?'none':'grayscale(1) opacity(.3)';s.style.transform=i<r?'scale(1.15)':'scale(1)'});
+var c=document.getElementById('demo-color').value;var dr=document.getElementById('demo-result');dr.style.display='block';
+if(r>=4){dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-bottom:12px">🎉</div><p style="font-size:16px;color:#475569">Great! The customer gets redirected to <strong>Google Reviews</strong>.</p><button style="margin-top:12px;padding:12px 24px;background:'+c+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:default">Leave a Google Review →</button></div>'}
+else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-bottom:12px">🛡️</div><p style="font-size:16px;color:#475569">This feedback stays <strong>private</strong> — it never reaches Google.</p><div style="margin-top:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-align:left"><div style="font-size:13px;color:#94a3b8;margin-bottom:4px">Private feedback form appears here</div><div style="background:#f1f5f9;border-radius:4px;height:32px;margin-bottom:8px"></div><div style="background:#f1f5f9;border-radius:4px;height:60px"></div></div></div>'}}
+</script></section>
+
+<section id="features" class="features"><div class="container">
+<h2 style="text-align:center;font-size:36px;margin-bottom:40px">Everything You Need to Own Your Reviews</h2>
+<div class="features-grid">
+<div class="feature-card"><div class="feature-icon">🛡️</div><h3>Smart Review Gate</h3><p>Happy customers get sent to Google. Unhappy ones send you private feedback instead.</p></div>
+<div class="feature-card"><div class="feature-icon">📱</div><h3>QR Codes</h3><p>Print QR codes for your counter, receipts, tables, or business cards.</p></div>
+<div class="feature-card"><div class="feature-icon">📊</div><h3>Real-Time Analytics</h3><p>Track every page view, review, and rating. See how your reputation is trending.</p></div>
+<div class="feature-card"><div class="feature-icon">✉️</div><h3>Ready-Made Templates</h3><p>Copy-paste SMS and email templates to request reviews after every visit.</p></div>
+<div class="feature-card"><div class="feature-icon">🎨</div><h3>Branded Review Page</h3><p>Your own custom review page with your business name and colors.</p></div>
+<div class="feature-card"><div class="feature-icon">⚡</div><h3>2-Minute Setup</h3><p>No technical skills needed. Just paste your Google review link and you're live.</p></div>
+</div></div></section>
+
+<section class="how-it-works"><div class="container">
+<h2 style="text-align:center;font-size:36px">How It Works</h2>
+<div class="steps">
+<div class="step"><div class="step-number">1</div><h3>Add Your Business</h3><p>Enter your business name and paste your Google review link.</p></div>
+<div class="step"><div class="step-number">2</div><h3>Share With Customers</h3><p>Use QR codes, text messages, or email to send customers to your review page.</p></div>
+<div class="step"><div class="step-number">3</div><h3>Watch Reviews Grow</h3><p>Happy customers leave Google reviews. Unhappy ones send private feedback.</p></div>
+</div></div></section>
+
+<section id="pricing" class="pricing-section"><div class="container">
+<h2 style="text-align:center;font-size:36px;margin-bottom:8px">Simple, Honest Pricing</h2>
+<p style="text-align:center;color:#64748b;font-size:18px">Start free. Upgrade when you need more.</p>
+<div class="pricing-grid">
+<div class="pricing-card"><h3>Free</h3><div class="price">$0<span>/mo</span></div>
+<ul><li>1 location</li><li>Branded review page</li><li>QR code</li><li>Basic analytics</li><li>Smart review gate</li></ul>
+<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</a></div>
+<div class="pricing-card featured"><h3>Starter</h3><div class="price">$29<span>/mo</span></div>
+<ul><li>Everything in Free</li><li>SMS &amp; email templates</li><li>Advanced analytics</li><li>Custom thank-you messages</li><li>Priority support</li></ul>
+<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</a></div>
+<div class="pricing-card"><h3>Growth</h3><div class="price">$79<span>/mo</span></div>
+<ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Review response templates</li><li>Dedicated support</li></ul>
+<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a></div>
+</div></div></section>
+
+<section style="padding:80px 0;background:#fff"><div class="container">
+<h2 style="text-align:center;font-size:36px;margin-bottom:8px">Trusted by Local Businesses</h2>
+<p style="text-align:center;color:#64748b;font-size:18px;margin-bottom:48px">See what business owners are saying about ReviewFlow</p>
+<div class="testimonials-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto">
+<div style="background:#f8fafc;border-radius:16px;padding:32px;border:1px solid #e2e8f0">
+<div style="color:#f59e0b;font-size:20px;margin-bottom:12px">★★★★★</div>
+<p style="font-size:15px;color:#475569;margin-bottom:20px;font-style:italic">"Since using ReviewFlow, our Google reviews went from 3.2 to 4.7 stars. The review gate is genius — we've caught 23 negative reviews before they hit Google."</p>
+<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2563eb">MR</div>
+<div><div style="font-weight:600;font-size:14px">Maria Rodriguez</div><div style="font-size:13px;color:#94a3b8">Owner, Bella's Salon & Spa</div></div></div></div>
+<div style="background:#f8fafc;border-radius:16px;padding:32px;border:1px solid #e2e8f0">
+<div style="color:#f59e0b;font-size:20px;margin-bottom:12px">★★★★★</div>
+<p style="font-size:15px;color:#475569;margin-bottom:20px;font-style:italic">"We went from 47 to 186 Google reviews in 3 months. The QR code at our register is a game changer. Customers actually enjoy leaving reviews now."</p>
+<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#d97706">JT</div>
+<div><div style="font-weight:600;font-size:14px">James Thompson</div><div style="font-size:13px;color:#94a3b8">Owner, Main Street Auto Repair</div></div></div></div>
+<div style="background:#f8fafc;border-radius:16px;padding:32px;border:1px solid #e2e8f0">
+<div style="color:#f59e0b;font-size:20px;margin-bottom:12px">★★★★★</div>
+<p style="font-size:15px;color:#475569;margin-bottom:20px;font-style:italic">"Setup took literally 2 minutes. Now I just hand customers a card with the QR code after their appointment. My review count has tripled and my star rating went from 4.1 to 4.8."</p>
+<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-weight:700;color:#16a34a">SP</div>
+<div><div style="font-weight:600;font-size:14px">Dr. Sarah Park</div><div style="font-size:13px;color:#94a3b8">Park Family Dental</div></div></div></div>
+</div>
+</div></section>
+
+<section class="cta"><div class="container">
+<h2>Every Day Without Reviews Is a Day You Lose Customers</h2>
+<p>Businesses with more reviews get more clicks, more calls, and more customers.</p>
+<a href="/signup" class="btn btn-primary" style="padding:16px 48px;font-size:17px">Start Free — No Credit Card</a>
+<div style="margin-top:48px;padding-top:40px;border-top:1px solid #334155">
+<p style="font-size:16px;color:#cbd5e1;margin-bottom:16px">Not ready yet? Get notified when we launch new features.</p>
+<form id="emailCapture" style="display:flex;gap:12px;max-width:440px;margin:0 auto" onsubmit="captureEmail(event)">
+<input type="email" id="captureEmailInput" placeholder="you@business.com" required style="flex:1;padding:14px 18px;border:2px solid #475569;border-radius:10px;background:#334155;color:#fff;font-size:15px">
+<button type="submit" class="btn btn-primary" style="padding:14px 24px;white-space:nowrap">Notify Me</button>
+</form>
+<p id="captureMsg" style="font-size:14px;margin-top:8px;display:none"></p>
+</div>
+</div></section>
+<script>async function captureEmail(e){e.preventDefault();const em=document.getElementById('captureEmailInput').value;const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list! We\\'ll keep you posted.';document.getElementById('captureEmailInput').value=''}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong'}}</script>
+${footer()}
+</body></html>`);
+});
+
+// ===== AUTH =====
+app.get('/login', (req, res) => { if (req.session.userId) return res.redirect('/dashboard'); res.send(authPage('login')); });
+app.get('/signup', (req, res) => { if (req.session.userId) return res.redirect('/dashboard'); res.send(authPage('signup')); });
+
+app.post('/signup', (req, res) => {
+  const { email, password, business_name } = req.body;
+  if (!email || !password) return res.send(authPage('signup', 'Email and password required'));
+  if (db.prepare('SELECT id FROM users WHERE email = ?').get(email)) return res.send(authPage('signup', 'Email already registered'));
+  const id = uuidv4();
+  db.prepare('INSERT INTO users (id, email, password_hash, business_name) VALUES (?,?,?,?)').run(id, email, bcrypt.hashSync(password, 10), business_name || '');
+  req.session.userId = id;
+  res.redirect('/onboarding');
+});
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) return res.send(authPage('login', 'Invalid email or password'));
+  req.session.userId = user.id;
+  res.redirect('/dashboard');
+});
+
+app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
+
+function authPage(mode, error) {
+  const isLogin = mode === 'login';
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${isLogin ? 'Log In' : 'Sign Up'} — ReviewFlow</title>${css()}
+<style>body{background:#f8fafc}.auth-wrap{max-width:440px;margin:80px auto;padding:0 24px}.auth-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:40px}
+.auth-card h1{font-size:28px;margin-bottom:8px;text-align:center}.auth-card .subtitle{color:#64748b;text-align:center;margin-bottom:32px}
+.auth-footer{text-align:center;margin-top:24px;font-size:14px;color:#64748b}.auth-footer a{color:#2563eb;text-decoration:none}</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div></div></div></nav>
+<div class="auth-wrap"><div class="auth-card">
+<h1>${isLogin ? 'Welcome Back' : 'Create Your Account'}</h1>
+<p class="subtitle">${isLogin ? 'Log in to your dashboard' : 'Start collecting reviews in 2 minutes'}</p>
+${error ? `<div class="alert alert-error">${error}</div>` : ''}
+<form method="POST" action="/${mode}">
+${!isLogin ? '<div class="form-group"><label>Business Name</label><input type="text" name="business_name" placeholder="e.g. Joe\'s Coffee"></div>' : ''}
+<div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="you@business.com"></div>
+<div class="form-group"><label>Password</label><input type="password" name="password" required minlength="6" placeholder="${isLogin?'Your password':'Create a password'}"></div>
+<button type="submit" class="btn btn-primary" style="width:100%;padding:14px">${isLogin ? 'Log In' : 'Create Account'}</button>
+</form>
+<div class="auth-footer">${isLogin ? "Don't have an account? <a href='/signup'>Sign up free</a>" : "Already have an account? <a href='/login'>Log in</a>"}</div>
+</div></div></body></html>`;
+}
+
+// ===== DASHBOARD =====
+function dashLayout(user, content) {
+  const pb = user.plan === 'growth' ? 'badge-growth' : user.plan === 'starter' ? 'badge-starter' : 'badge-free';
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — ReviewFlow</title>${css()}<style>body{background:#f8fafc}.dashboard{padding:32px 0}</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</a>
+<div class="nav-links"><span class="badge ${pb}">${user.plan.toUpperCase()}</span><a href="/pricing">Upgrade</a><a href="/logout">Log Out</a></div></div></nav>
+<div class="dashboard"><div class="container">${content}</div></div></body></html>`;
+}
+
+app.get('/dashboard', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const locations = db.prepare('SELECT * FROM locations WHERE user_id = ? ORDER BY created_at DESC').all(user.id);
+  const locIds = locations.map(l => l.id);
+  
+  // Aggregate metrics
+  let aggTotal = 0, aggAvg = 0, aggWeek = 0, aggCaught = 0;
+  if (locIds.length) {
+    const ph = locIds.map(() => '?').join(',');
+    aggTotal = db.prepare(`SELECT COUNT(*) as c FROM reviews WHERE location_id IN (${ph})`).get(...locIds).c;
+    aggAvg = db.prepare(`SELECT AVG(rating) as a FROM reviews WHERE location_id IN (${ph})`).get(...locIds).a || 0;
+    aggWeek = db.prepare(`SELECT COUNT(*) as c FROM reviews WHERE location_id IN (${ph}) AND created_at >= datetime('now','-7 days')`).get(...locIds).c;
+    aggCaught = db.prepare(`SELECT COUNT(*) as c FROM reviews r JOIN locations l ON r.location_id=l.id WHERE r.location_id IN (${ph}) AND r.rating < l.gate_threshold AND r.redirected_to_google = 0`).get(...locIds).c;
+  }
+
+  // Recent notifications
+  const notifs = db.prepare('SELECT n.*, l.business_name FROM notifications n JOIN locations l ON n.location_id=l.id WHERE n.user_id=? ORDER BY n.created_at DESC LIMIT 5').all(user.id);
+
+  const locs = locations.map(loc => {
+    const views = db.prepare('SELECT COUNT(*) as c FROM page_views WHERE location_id = ?').get(loc.id).c;
+    const total = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id = ?').get(loc.id).c;
+    const google = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id = ? AND redirected_to_google = 1').get(loc.id).c;
+    const avg = db.prepare('SELECT AVG(rating) as a FROM reviews WHERE location_id = ?').get(loc.id).a || 0;
+    const caught = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id = ? AND rating < ? AND redirected_to_google = 0').get(loc.id, loc.gate_threshold).c;
+    return { ...loc, views, total, google, avg: avg.toFixed(1), caught };
   });
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`ProposalDash running on port ${PORT}`);
+  // Aggregate stats bar
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">
+<div><h1 style="font-size:28px;margin-bottom:4px">Dashboard</h1><p style="color:#64748b;font-size:14px">Welcome back${user.business_name ? ', '+esc(user.business_name) : ''}!</p></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/templates" class="btn btn-secondary btn-sm">📋 Templates</a><a href="/locations/new" class="btn btn-primary btn-sm">+ Add Location</a></div></div>`;
+  
+  html += `<div class="stat-grid" style="margin-bottom:24px">
+<div class="stat-card" style="border-left:4px solid #2563eb"><div class="stat-value">${aggTotal}</div><div class="stat-label">Total Reviews</div></div>
+<div class="stat-card" style="border-left:4px solid #f59e0b"><div class="stat-value">${aggAvg ? aggAvg.toFixed(1) + '★' : '—'}</div><div class="stat-label">Avg Rating</div></div>
+<div class="stat-card" style="border-left:4px solid #8b5cf6"><div class="stat-value">${aggWeek}</div><div class="stat-label">This Week</div></div>
+<div class="stat-card" style="border-left:4px solid #22c55e"><div class="stat-value">${aggCaught}</div><div class="stat-label">Bad Reviews Caught 🛡️</div></div>
+</div>`;
+
+  // Notifications
+  if (notifs.length) {
+    html += `<div class="card" style="margin-bottom:20px;border-left:4px solid #f59e0b;padding:16px 20px"><h3 style="font-size:15px;margin-bottom:12px">🔔 Recent Notifications</h3>`;
+    notifs.forEach(n => {
+      const ago = Math.round((Date.now() - new Date(n.created_at+'Z').getTime()) / 60000);
+      const agoText = ago < 60 ? ago + 'm ago' : Math.round(ago/60) + 'h ago';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:14px">
+<span style="font-size:18px">📧</span><span style="flex:1">${esc(n.message)}</span>
+<span style="color:#94a3b8;font-size:12px;white-space:nowrap">${agoText}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<h2 style="font-size:20px;margin-bottom:16px">Your Locations</h2>`;
+
+  if (!locs.length) {
+    html += `<div class="card" style="text-align:center;padding:60px 20px"><div style="font-size:64px;margin-bottom:16px">🏪</div>
+<h2 style="font-size:24px;margin-bottom:8px">No reviews yet — share your link to get started!</h2>
+<p style="color:#64748b;margin:8px 0 24px;max-width:400px;display:inline-block">Add your first business location and start collecting reviews in under 2 minutes. It's free!</p>
+<div><a href="/locations/new" class="btn btn-primary" style="padding:14px 32px;font-size:16px">+ Add Your First Location</a></div>
+<div style="margin-top:32px;display:flex;justify-content:center;gap:32px;color:#94a3b8;font-size:13px">
+<div>✅ Free forever plan</div><div>✅ 2-minute setup</div><div>✅ No credit card</div></div></div>`;
+  } else {
+    locs.forEach(l => {
+      html += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<div><h3 style="font-size:20px">${esc(l.business_name)}</h3><span style="color:#64748b;font-size:14px">${esc(l.business_type||'Business')}</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<a href="/r/${l.slug}" target="_blank" class="btn btn-secondary btn-sm">Preview</a>
+<a href="/locations/${l.id}/qr" class="btn btn-secondary btn-sm">QR Code</a>
+<a href="/locations/${l.id}/share" class="btn btn-secondary btn-sm">Share</a>
+<a href="/locations/${l.id}/analytics" class="btn btn-secondary btn-sm">Analytics</a>
+<a href="/locations/${l.id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+</div></div>
+<div class="stat-grid">
+<div class="stat-card"><div class="stat-value">${l.views}</div><div class="stat-label">Page Views</div></div>
+<div class="stat-card"><div class="stat-value">${l.total}</div><div class="stat-label">Total Reviews</div></div>
+<div class="stat-card"><div class="stat-value">${l.google}</div><div class="stat-label">Sent to Google</div></div>
+<div class="stat-card"><div class="stat-value">${l.avg}★</div><div class="stat-label">Avg Rating</div></div>
+<div class="stat-card"><div class="stat-value" style="color:#22c55e">${l.caught}</div><div class="stat-label">Bad Reviews Caught</div></div>
+</div></div>`;
+    });
+  }
+  res.send(dashLayout(user, html));
+});
+
+// ===== LOCATIONS =====
+app.get('/locations/new', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const count = db.prepare('SELECT COUNT(*) as c FROM locations WHERE user_id = ?').get(user.id).c;
+  const max = user.plan === 'growth' ? 5 : 1;
+  if (count >= max && user.plan !== 'growth') {
+    return res.send(dashLayout(user, '<div class="card" style="text-align:center;padding:60px"><h2>Upgrade to Add More Locations</h2><p style="color:#64748b;margin:16px 0"><a href="/pricing" class="btn btn-primary">View Plans</a></p></div>'));
+  }
+  res.send(locForm(user));
+});
+
+app.post('/locations', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const { business_name, business_type, google_review_url, primary_color, gate_threshold } = req.body;
+  if (!business_name || !google_review_url) return res.send(locForm(user, 'Business name and Google review URL are required'));
+  const id = uuidv4();
+  const slug = business_name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+id.slice(0,6);
+  db.prepare('INSERT INTO locations (id,user_id,slug,business_name,business_type,google_review_url,primary_color,gate_threshold) VALUES (?,?,?,?,?,?,?,?)').run(id,user.id,slug,business_name,business_type||'',google_review_url,primary_color||'#2563eb',parseInt(gate_threshold)||4);
+  res.redirect('/dashboard');
+});
+
+app.get('/locations/:id/edit', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id, user.id);
+  if (!loc) return res.redirect('/dashboard');
+  res.send(locForm(user, null, loc));
+});
+
+app.post('/locations/:id/edit', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const { business_name, business_type, google_review_url, primary_color, gate_threshold, thank_you_message, header_text, logo_url, color_theme } = req.body;
+  db.prepare('UPDATE locations SET business_name=?,business_type=?,google_review_url=?,primary_color=?,gate_threshold=?,thank_you_message=?,header_text=?,logo_url=?,color_theme=? WHERE id=? AND user_id=?')
+    .run(business_name,business_type||'',google_review_url,primary_color||'#2563eb',parseInt(gate_threshold)||4,thank_you_message||'Thank you!',header_text||'',logo_url||'',color_theme||'blue',req.params.id,user.id);
+  res.redirect('/dashboard');
+});
+
+app.post('/locations/:id/delete', requireAuth, (req, res) => {
+  const user = getUser(req);
+  db.prepare('DELETE FROM reviews WHERE location_id IN (SELECT id FROM locations WHERE id=? AND user_id=?)').run(req.params.id,user.id);
+  db.prepare('DELETE FROM page_views WHERE location_id IN (SELECT id FROM locations WHERE id=? AND user_id=?)').run(req.params.id,user.id);
+  db.prepare('DELETE FROM locations WHERE id=? AND user_id=?').run(req.params.id,user.id);
+  res.redirect('/dashboard');
+});
+
+function locForm(user, error, loc) {
+  const isEdit = !!loc;
+  const types = ['Restaurant','Salon/Spa','Dental Office','Medical Practice','Auto Shop','Real Estate','Legal Services','Home Services','Retail Store','Fitness/Gym','Other'];
+  return dashLayout(user, `<div style="max-width:600px;margin:0 auto">
+<h1 style="font-size:28px;margin-bottom:24px">${isEdit?'Edit Location':'Add New Location'}</h1>
+${error?`<div class="alert alert-error">${error}</div>`:''}
+<div class="card"><form method="POST" action="${isEdit?`/locations/${loc.id}/edit`:'/locations'}">
+<div class="form-group"><label>Business Name *</label><input type="text" name="business_name" required value="${esc(loc?.business_name||'')}" placeholder="e.g. Joe's Coffee"></div>
+<div class="form-group"><label>Business Type</label><select name="business_type">${types.map(t=>`<option value="${t}" ${loc?.business_type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+<div class="form-group"><label>Google Review URL *</label><input type="url" name="google_review_url" required value="${esc(loc?.google_review_url||'')}" placeholder="https://g.page/r/...">
+<div class="form-hint">Go to Google Business Profile → Share review link</div></div>
+<div class="form-group"><label>Brand Color</label><input type="color" name="primary_color" value="${loc?.primary_color||'#2563eb'}" style="width:80px;height:40px;padding:4px"></div>
+<div class="form-group"><label>Color Theme</label><select name="color_theme">
+${[['blue','🔵 Blue (Default)'],['green','🟢 Green'],['purple','🟣 Purple'],['orange','🟠 Orange']].map(([v,l])=>`<option value="${v}" ${(loc?.color_theme||'blue')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+<div class="form-group"><label>Review Page Header Text</label><input type="text" name="header_text" value="${esc(loc?.header_text||'')}" placeholder="e.g. How was your experience?">
+<div class="form-hint">Custom heading shown on your review page (default: "How was your experience?")</div></div>
+<div class="form-group"><label>Logo / Photo URL</label><input type="url" name="logo_url" value="${esc(loc?.logo_url||'')}" placeholder="https://example.com/logo.png">
+<div class="form-hint">Square image works best. Shown at the top of your review page.</div></div>
+<div class="form-group"><label>Review Gate Threshold</label><select name="gate_threshold">${[3,4,5].map(n=>`<option value="${n}" ${(loc?.gate_threshold||4)==n?'selected':''}>${n}+ stars → Google</option>`).join('')}</select>
+<div class="form-hint">Below this rating → private feedback form</div></div>
+${isEdit?`<div class="form-group"><label>Thank You Message</label><textarea name="thank_you_message" rows="2">${esc(loc?.thank_you_message||'')}</textarea></div>`:''}
+<div style="display:flex;gap:12px"><button type="submit" class="btn btn-primary">${isEdit?'Save Changes':'Create Location'}</button><a href="/dashboard" class="btn btn-secondary">Cancel</a></div>
+</form></div>
+${isEdit?`<div class="card" style="margin-top:24px;border-color:#fecaca"><h3 style="color:#dc2626;margin-bottom:12px">Danger Zone</h3>
+<form method="POST" action="/locations/${loc.id}/delete" onsubmit="return confirm('Delete this location?')">
+<button type="submit" class="btn btn-danger btn-sm">Delete Location</button></form></div>`:''}</div>`);
+}
+
+// ===== ANALYTICS =====
+app.get('/locations/:id/analytics', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id,user.id);
+  if (!loc) return res.redirect('/dashboard');
+  const reviews = db.prepare('SELECT * FROM reviews WHERE location_id=? ORDER BY created_at DESC LIMIT 50').all(loc.id);
+  const tv = db.prepare('SELECT COUNT(*) as c FROM page_views WHERE location_id=?').get(loc.id).c;
+  const tr = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id=?').get(loc.id).c;
+  const gr = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id=? AND redirected_to_google=1').get(loc.id).c;
+  const nc = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id=? AND rating<?').get(loc.id,loc.gate_threshold).c;
+  const avg = (db.prepare('SELECT AVG(rating) as a FROM reviews WHERE location_id=?').get(loc.id).a||0).toFixed(1);
+  const rd = {};
+  for (let i=1;i<=5;i++) rd[i] = db.prepare('SELECT COUNT(*) as c FROM reviews WHERE location_id=? AND rating=?').get(loc.id,i).c;
+
+  let bars = '';
+  for (let i=5;i>=1;i--) {
+    const pct = tr > 0 ? (rd[i]/tr*100) : 0;
+    bars += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+<span style="width:24px;text-align:right;font-size:14px;font-weight:600">${i}★</span>
+<div style="flex:1;background:#f1f5f9;border-radius:4px;height:20px;overflow:hidden">
+<div style="height:100%;background:${i>=4?'#22c55e':i===3?'#eab308':'#ef4444'};width:${pct}%;border-radius:4px"></div></div>
+<span style="width:30px;font-size:13px;color:#64748b">${rd[i]}</span></div>`;
+  }
+
+  let rl = reviews.map(r=>`<div style="padding:16px 0;border-bottom:1px solid #f1f5f9;display:flex;gap:16px">
+<div style="font-size:24px">${r.rating>=4?'😊':r.rating===3?'😐':'😟'}</div><div style="flex:1">
+<div style="display:flex;justify-content:space-between"><div><strong>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</strong>
+${r.redirected_to_google?'<span style="font-size:12px;background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:4px;margin-left:8px">→ Google</span>':'<span style="font-size:12px;background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:4px;margin-left:8px">Private</span>'}
+</div><span style="font-size:13px;color:#94a3b8">${new Date(r.created_at).toLocaleDateString()}</span></div>
+${r.feedback?`<p style="margin-top:8px;color:#475569;font-size:14px">${esc(r.feedback)}</p>`:''}
+${r.customer_name?`<p style="margin-top:4px;font-size:13px;color:#94a3b8">— ${esc(r.customer_name)}</p>`:''}</div></div>`).join('');
+
+  res.send(dashLayout(user, `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Back</a>
+<h1 style="font-size:28px">${esc(loc.business_name)} — Analytics</h1></div>
+<div class="stat-grid">
+<div class="stat-card"><div class="stat-value">${tv}</div><div class="stat-label">Page Views</div></div>
+<div class="stat-card"><div class="stat-value">${tr}</div><div class="stat-label">Total Reviews</div></div>
+<div class="stat-card"><div class="stat-value">${gr}</div><div class="stat-label">Sent to Google</div></div>
+<div class="stat-card"><div class="stat-value">${avg}★</div><div class="stat-label">Avg Rating</div></div>
+<div class="stat-card"><div class="stat-value" style="color:#22c55e">${nc}</div><div class="stat-label">Bad Reviews Caught</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="card"><h3 style="margin-bottom:16px">Rating Distribution</h3>${bars}</div>
+<div class="card"><h3 style="margin-bottom:16px">Conversion Rate</h3>
+<div style="text-align:center;padding:20px"><div style="font-size:48px;font-weight:800;color:#2563eb">${tv>0?Math.round(tr/tv*100):0}%</div>
+<div style="color:#64748b;font-size:14px;margin-top:8px">Visitors → Reviews</div></div></div></div>
+<div class="card" style="margin-top:16px"><h3 style="margin-bottom:16px">Recent Reviews</h3>
+${rl||'<p style="color:#94a3b8;text-align:center;padding:32px">No reviews yet</p>'}</div>`));
+});
+
+// ===== QR CODE =====
+app.get('/locations/:id/qr', requireAuth, async (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id,user.id);
+  if (!loc) return res.redirect('/dashboard');
+  const url = `${BASE_URL}/r/${loc.slug}`;
+  const qr = await QRCode.toDataURL(url, { width: 400, margin: 2 });
+  res.send(dashLayout(user, `<div style="max-width:600px;margin:0 auto;text-align:center">
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;text-align:left;margin-bottom:16px">← Back</a>
+<h1 style="font-size:28px;margin-bottom:8px">QR Code</h1><p style="color:#64748b;margin-bottom:24px">${esc(loc.business_name)}</p>
+<div class="card" style="padding:40px"><img src="${qr}" style="width:280px;height:280px;margin:0 auto;display:block">
+<p style="margin-top:24px;font-size:14px;color:#64748b;word-break:break-all">${url}</p>
+<div style="margin-top:24px;display:flex;gap:12px;justify-content:center">
+<a href="/locations/${loc.id}/qr.png" download="reviewflow-qr.png" class="btn btn-primary">Download PNG</a>
+<button onclick="navigator.clipboard.writeText('${url}');this.textContent='Copied!'" class="btn btn-secondary">Copy Link</button></div></div>
+<div class="card" style="text-align:left;margin-top:16px"><h3 style="margin-bottom:12px">💡 Where to use your QR code</h3>
+<ul style="color:#475569;font-size:15px;list-style:disc;padding-left:20px;line-height:2">
+<li>Print on receipts</li><li>Display at your counter</li><li>Table tents in restaurants</li><li>Business cards</li><li>Email signatures</li></ul></div></div>`));
+});
+
+app.get('/locations/:id/qr.png', requireAuth, async (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id,user.id);
+  if (!loc) return res.status(404).send('Not found');
+  const buf = await QRCode.toBuffer(`${BASE_URL}/r/${loc.slug}`, { width: 600, margin: 2 });
+  res.type('image/png').send(buf);
+});
+
+// ===== SHARE =====
+app.get('/locations/:id/share', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id,user.id);
+  if (!loc) return res.redirect('/dashboard');
+  const url = `${BASE_URL}/r/${loc.slug}`;
+  const sms = `Hi! Thanks for visiting ${loc.business_name}. We'd love your feedback — takes 30 seconds: ${url}`;
+  const emailBody = `Hi there,\n\nThank you for choosing ${loc.business_name}!\n\nWe'd really appreciate it if you could share your feedback:\n${url}\n\nThank you!\n${loc.business_name}`;
+  res.send(dashLayout(user, `<div style="max-width:700px;margin:0 auto">
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;margin-bottom:16px">← Back</a>
+<h1 style="font-size:28px;margin-bottom:24px">Share &amp; Templates — ${esc(loc.business_name)}</h1>
+<div class="card"><h3 style="margin-bottom:12px">📋 Your Review Link</h3>
+<div style="display:flex;gap:8px"><input type="text" value="${url}" readonly style="background:#f8fafc" id="link">
+<button onclick="navigator.clipboard.writeText(document.getElementById('link').value);this.textContent='Copied!'" class="btn btn-primary btn-sm" style="white-space:nowrap">Copy Link</button></div></div>
+<div class="card"><h3 style="margin-bottom:12px">💬 SMS Template</h3>
+<textarea id="sms" rows="3" style="background:#f8fafc" readonly>${sms}</textarea>
+<button onclick="navigator.clipboard.writeText(document.getElementById('sms').value);this.textContent='Copied!'" class="btn btn-secondary btn-sm" style="margin-top:8px">Copy SMS</button></div>
+<div class="card"><h3 style="margin-bottom:12px">✉️ Email Template</h3>
+<div class="form-group"><label>Subject</label><input type="text" value="How was your experience at ${esc(loc.business_name)}?" readonly style="background:#f8fafc" id="subj"></div>
+<textarea id="ebody" rows="6" style="background:#f8fafc" readonly>${esc(emailBody)}</textarea>
+<button onclick="navigator.clipboard.writeText(document.getElementById('subj').value+'\\n\\n'+document.getElementById('ebody').value);this.textContent='Copied!'" class="btn btn-secondary btn-sm" style="margin-top:8px">Copy Email</button></div>
+<div class="card"><h3 style="margin-bottom:12px">🖨️ Print Materials</h3><a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">Get QR Code →</a></div></div>`));
+});
+
+// ===== DEMO PREVIEW PAGE =====
+app.get('/demo/:name', (req, res) => {
+  const name = decodeURIComponent(req.params.name).slice(0,100);
+  const c = req.query.color || '#2563eb';
+  const th = 4;
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Demo — ${esc(name)} | ReviewFlow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.demo-bar{position:fixed;top:0;left:0;right:0;background:#1e293b;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;z-index:99;font-size:14px}
+.demo-bar a{color:#fff;background:#2563eb;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
+.rc{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:420px;width:100%;padding:40px 32px;text-align:center;margin-top:40px}
+.bn{font-size:24px;font-weight:700;margin-bottom:8px;color:#1e293b}
+.prompt{font-size:18px;color:#475569;margin-bottom:24px}
+.stars{display:flex;justify-content:center;gap:8px;margin-bottom:32px}
+.star{font-size:48px;cursor:pointer;transition:transform .15s;user-select:none;filter:grayscale(1) opacity(.3)}
+.star:hover,.star.active{filter:none;transform:scale(1.2)}
+.ff{display:none;margin-top:24px;text-align:left}.ff.show{display:block}
+.ff label{font-weight:600;font-size:14px;margin-bottom:6px;display:block;color:#374151}
+.ff input,.ff textarea{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:16px}
+.sb{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;background:${esc(c)};color:#fff}
+.result{display:none;text-align:center}.result.show{display:block}
+.pw{margin-top:32px;font-size:12px;color:#cbd5e1}
+</style></head><body>
+<div class="demo-bar"><span>🔍 This is a demo preview — <strong>${esc(name)}</strong></span><a href="/signup">Create Your Own →</a></div>
+<div class="rc">
+<div id="s1"><div class="bn">${esc(name)}</div>
+<div class="prompt">How was your experience?</div>
+<div class="stars">${[1,2,3,4,5].map(i=>`<div class="star" data-r="${i}" onclick="sel(${i})">⭐</div>`).join('')}</div></div>
+<div id="s2" class="ff">
+<div id="fp" style="display:none;text-align:center;margin-bottom:24px"><div style="font-size:48px;margin-bottom:12px">🎉</div>
+<p style="font-size:18px;color:#475569">We're thrilled! Would you share your experience on Google?</p></div>
+<div id="fn" style="display:none"><p style="font-size:16px;color:#475569;margin-bottom:20px;text-align:center">We're sorry. Please tell us how we can improve:</p>
+<label>Your Name (optional)</label><input type="text" placeholder="Your name">
+<label>What could we do better?</label><textarea rows="4" placeholder="Tell us about your experience..."></textarea></div>
+<button class="sb" id="sbtn" onclick="demoSubmit()">Submit</button></div>
+<div id="s3" class="result"><div style="font-size:64px;margin-bottom:16px" id="ri">🙏</div><div style="font-size:18px;color:#475569" id="rm"></div>
+<div style="margin-top:24px"><a href="/signup" style="display:inline-block;padding:12px 24px;background:${esc(c)};color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Get This For Your Business →</a></div></div>
+<div class="pw">Powered by <a href="/" style="color:#94a3b8;text-decoration:none">ReviewFlow</a></div></div>
+<script>
+let rating=0;
+function sel(r){rating=r;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
+setTimeout(()=>{document.getElementById('s1').style.display='none';const f=document.getElementById('s2');f.classList.add('show');
+if(r>=${th}){document.getElementById('fp').style.display='block';document.getElementById('fn').style.display='none';document.getElementById('sbtn').textContent='Leave a Google Review →'}
+else{document.getElementById('fp').style.display='none';document.getElementById('fn').style.display='block';document.getElementById('sbtn').textContent='Send Private Feedback'}},300)}
+function demoSubmit(){document.getElementById('s2').style.display='none';var res=document.getElementById('s3');res.classList.add('show');
+if(rating>=${th}){document.getElementById('ri').textContent='🌟';document.getElementById('rm').innerHTML='In production, the customer would be redirected to <strong>Google Reviews</strong> right now.'}
+else{document.getElementById('ri').textContent='🛡️';document.getElementById('rm').innerHTML='This negative feedback stays <strong>private</strong> — it never reaches Google.'}}
+</script></body></html>`);
+});
+
+// ===== PUBLIC REVIEW PAGE =====
+app.get('/r/:slug', (req, res) => {
+  const loc = db.prepare('SELECT * FROM locations WHERE slug=?').get(req.params.slug);
+  if (!loc) return res.status(404).send(notFoundPage());
+  db.prepare('INSERT INTO page_views (location_id) VALUES (?)').run(loc.id);
+  const themeColors = { blue: '#2563eb', green: '#16a34a', purple: '#7c3aed', orange: '#ea580c' };
+  const c = themeColors[loc.color_theme] || loc.primary_color || '#2563eb';
+  const themeBg = { blue: 'linear-gradient(135deg,#eff6ff,#f8fafc)', green: 'linear-gradient(135deg,#f0fdf4,#f8fafc)', purple: 'linear-gradient(135deg,#f5f3ff,#f8fafc)', orange: 'linear-gradient(135deg,#fff7ed,#f8fafc)' };
+  const bg = themeBg[loc.color_theme] || themeBg.blue;
+  const headerText = loc.header_text || 'How was your experience?';
+  const logoHtml = loc.logo_url ? `<img src="${esc(loc.logo_url)}" alt="${esc(loc.business_name)}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid ${c}20">` : '';
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Review ${esc(loc.business_name)}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${bg};min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:16px}
+.rc{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:420px;width:100%;padding:40px 28px;text-align:center}
+.bn{font-size:24px;font-weight:700;margin-bottom:8px;color:#1e293b;word-wrap:break-word}.bt{font-size:14px;color:#94a3b8;margin-bottom:32px}
+.prompt{font-size:18px;color:#475569;margin-bottom:24px}
+.stars{display:flex;justify-content:center;gap:8px;margin-bottom:32px;-webkit-tap-highlight-color:transparent}
+.star{font-size:48px;cursor:pointer;transition:transform .15s;user-select:none;filter:grayscale(1) opacity(.3);-webkit-tap-highlight-color:transparent}
+.star:hover,.star.active{filter:none;transform:scale(1.2)}
+.ff{display:none;margin-top:24px;text-align:left}.ff.show{display:block}
+.ff label{font-weight:600;font-size:14px;margin-bottom:6px;display:block;color:#374151}
+.ff input,.ff textarea{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;font-family:inherit;margin-bottom:16px;-webkit-appearance:none}
+.ff input:focus,.ff textarea:focus{outline:none;border-color:${c}}
+.sb{width:100%;padding:16px;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;background:${c};color:#fff;transition:opacity .2s;-webkit-appearance:none}.sb:hover{opacity:.9}.sb:active{transform:scale(.98)}
+.result{display:none;text-align:center}.result.show{display:block}.ri{font-size:64px;margin-bottom:16px}.rm{font-size:18px;color:#475569}
+.pw{margin-top:32px;font-size:12px;color:#cbd5e1}.pw a{color:#94a3b8;text-decoration:none}
+@media(max-width:480px){.rc{padding:32px 20px;border-radius:16px}.bn{font-size:22px}.star{font-size:42px;gap:6px}.prompt{font-size:16px}.sb{font-size:16px;padding:14px}}
+@media(max-width:360px){.star{font-size:36px}}
+</style></head><body>
+<div class="rc">
+<div id="s1">${logoHtml}<div class="bn">${esc(loc.business_name)}</div>
+${loc.business_type?`<div class="bt">${esc(loc.business_type)}</div>`:''}
+<div class="prompt">${esc(headerText)}</div>
+<div class="stars" id="stars">${[1,2,3,4,5].map(i=>`<div class="star" data-r="${i}" onclick="sel(${i})">⭐</div>`).join('')}</div></div>
+<div id="s2" class="ff">
+<div id="fp" style="display:none;text-align:center;margin-bottom:24px"><div style="font-size:48px;margin-bottom:12px">🎉</div>
+<p style="font-size:18px;color:#475569">We're thrilled! Would you share your experience on Google?</p></div>
+<div id="fn" style="display:none"><p style="font-size:16px;color:#475569;margin-bottom:20px;text-align:center">We're sorry. Please tell us how we can improve:</p>
+<label>Your Name (optional)</label><input type="text" id="cn" placeholder="Your name">
+<label>Email (optional)</label><input type="email" id="ce" placeholder="your@email.com">
+<label>What could we do better?</label><textarea id="fb" rows="4" placeholder="Tell us about your experience..."></textarea></div>
+<button class="sb" onclick="submit()" id="sbtn">Submit</button></div>
+<div id="s3" class="result"><div class="ri" id="ri">🙏</div><div class="rm" id="rm"></div></div>
+<div class="pw">Powered by <a href="${BASE_URL}">ReviewFlow</a></div></div>
+<script>
+let rating=0;const th=${loc.gate_threshold};
+function sel(r){rating=r;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
+setTimeout(()=>{document.getElementById('s1').style.display='none';const f=document.getElementById('s2');f.classList.add('show');
+if(r>=th){document.getElementById('fp').style.display='block';document.getElementById('fn').style.display='none';document.getElementById('sbtn').textContent='Leave a Google Review →'}
+else{document.getElementById('fp').style.display='none';document.getElementById('fn').style.display='block';document.getElementById('sbtn').textContent='Send Feedback'}},300)}
+async function submit(){const b=document.getElementById('sbtn');b.disabled=true;b.textContent='Submitting...';
+try{const r=await fetch('/r/${loc.slug}/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({rating,feedback:document.getElementById('fb')?.value||'',customer_name:document.getElementById('cn')?.value||'',customer_email:document.getElementById('ce')?.value||''})});
+const d=await r.json();document.getElementById('s2').style.display='none';const res=document.getElementById('s3');res.classList.add('show');
+if(d.redirect&&d.google_url){document.getElementById('ri').textContent='🌟';document.getElementById('rm').textContent='Thank you! Redirecting to Google...';
+setTimeout(()=>window.location.href=d.google_url,1500)}else{document.getElementById('ri').textContent='🙏';document.getElementById('rm').textContent=d.message||'Thank you!'}}
+catch(e){b.disabled=false;b.textContent='Try Again'}}
+</script></body></html>`);
+});
+
+app.post('/r/:slug/submit', (req, res) => {
+  const loc = db.prepare('SELECT * FROM locations WHERE slug=?').get(req.params.slug);
+  if (!loc) return res.status(404).json({ error: 'Not found' });
+  const { rating, feedback, customer_name, customer_email } = req.body;
+  const r = parseInt(rating);
+  if (!r || r < 1 || r > 5) return res.status(400).json({ error: 'Invalid rating' });
+  const redir = r >= loc.gate_threshold;
+  db.prepare('INSERT INTO reviews (id,location_id,rating,feedback,customer_name,customer_email,redirected_to_google) VALUES (?,?,?,?,?,?,?)')
+    .run(uuidv4(), loc.id, r, feedback||'', customer_name||'', customer_email||'', redir?1:0);
+  // Create notification for negative reviews
+  if (!redir) {
+    const owner = db.prepare('SELECT user_id FROM locations WHERE id=?').get(loc.id);
+    if (owner) {
+      const msg = `⚠️ New ${r}-star review at ${loc.business_name}${customer_name ? ' from '+customer_name : ''} — Email notification sent!`;
+      db.prepare('INSERT INTO notifications (id,user_id,location_id,type,message) VALUES (?,?,?,?,?)').run(uuidv4(), owner.user_id, loc.id, 'negative_review', msg);
+    }
+  }
+  res.json({ success: true, redirect: redir, google_url: redir ? loc.google_review_url : null, message: redir ? 'Redirecting...' : loc.thank_you_message });
+});
+
+// ===== PRICING / STRIPE =====
+app.get('/pricing', (req, res) => {
+  const user = getUser(req);
+  const loggedIn = !!user;
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pricing — ReviewFlow</title>${css()}
+<style>body{background:#f8fafc}.pw{max-width:900px;margin:0 auto;padding:60px 24px}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.pc{background:#fff;border:2px solid #e2e8f0;border-radius:16px;padding:32px;text-align:center}
+.pc.ft{border-color:#2563eb}.pc h3{font-size:22px;margin-bottom:4px}
+.pc .pr{font-size:42px;font-weight:800;margin:16px 0}.pc .pr span{font-size:16px;color:#64748b;font-weight:400}
+.pc ul{list-style:none;text-align:left;margin:20px 0}.pc li{padding:8px 0;font-size:15px}.pc li::before{content:'✓ ';color:#22c55e;font-weight:700}
+@media(max-width:768px){.pg{grid-template-columns:1fr}}</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
+<div class="nav-links">${loggedIn?'<a href="/dashboard">Dashboard</a><a href="/logout">Log Out</a>':'<a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>'}</div></div></nav>
+<div class="pw"><h1 style="text-align:center;font-size:36px;margin-bottom:40px">Choose Your Plan</h1>
+<div class="pg">
+<div class="pc"><h3>Free</h3><div class="pr">$0<span>/mo</span></div>
+<ul><li>1 location</li><li>Branded review page</li><li>QR code</li><li>Smart review gate</li><li>Basic analytics</li></ul>
+${loggedIn&&user.plan==='free'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':'<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</a>'}</div>
+<div class="pc ft"><h3>Starter</h3><div class="pr">$29<span>/mo</span></div>
+<ul><li>Everything in Free</li><li>SMS &amp; email templates</li><li>Advanced analytics</li><li>Custom messages</li><li>Priority support</li></ul>
+${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('starter')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</a>'}</div>
+<div class="pc"><h3>Growth</h3><div class="pr">$79<span>/mo</span></div>
+<ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Response templates</li><li>Dedicated support</li></ul>
+${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a>'}</div>
+</div></div>
+<script>async function checkout(p){const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else alert('Error')}</script>
+</body></html>`);
+});
+
+app.post('/create-checkout', requireAuth, async (req, res) => {
+  const user = getUser(req);
+  const prices = { starter: { amount: 2900, name: 'ReviewFlow Starter' }, growth: { amount: 7900, name: 'ReviewFlow Growth' } };
+  const sel = prices[req.body.plan];
+  if (!sel) return res.status(400).json({ error: 'Invalid plan' });
+  try {
+    let cid = user.stripe_customer_id;
+    if (!cid) { const c = await stripe.customers.create({ email: user.email, metadata: { userId: user.id } }); cid = c.id; db.prepare('UPDATE users SET stripe_customer_id=? WHERE id=?').run(cid, user.id); }
+    const s = await stripe.checkout.sessions.create({ customer: cid, payment_method_types: ['card'],
+      line_items: [{ price_data: { currency: 'usd', product_data: { name: sel.name }, unit_amount: sel.amount, recurring: { interval: 'month' } }, quantity: 1 }],
+      mode: 'subscription', success_url: `${BASE_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`, cancel_url: `${BASE_URL}/pricing` });
+    res.json({ url: s.url });
+  } catch (e) { console.error('Stripe:', e); res.status(500).json({ error: 'Payment error' }); }
+});
+
+app.get('/billing/success', requireAuth, async (req, res) => {
+  const user = getUser(req);
+  try {
+    const s = await stripe.checkout.sessions.retrieve(req.query.session_id);
+    const plan = s.amount_total === 7900 ? 'growth' : 'starter';
+    db.prepare('UPDATE users SET plan=?,stripe_subscription_id=? WHERE id=?').run(plan, s.subscription, user.id);
+  } catch (e) {}
+  res.redirect('/dashboard');
+});
+
+// ===== EMAIL SIGNUP =====
+app.post('/api/email-signup', (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) return res.json({ error: 'Please enter a valid email' });
+  try {
+    db.prepare('INSERT OR IGNORE INTO email_signups (email) VALUES (?)').run(email);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: true }); }
+});
+
+// ===== ONBOARDING WIZARD =====
+app.get('/onboarding', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const hasLocation = db.prepare('SELECT COUNT(*) as c FROM locations WHERE user_id = ?').get(user.id).c > 0;
+  if (hasLocation) return res.redirect('/dashboard');
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Set Up Your Business — ReviewFlow</title>${css()}
+<style>
+body{background:#f8fafc}.onb-wrap{max-width:560px;margin:40px auto;padding:0 20px}
+.onb-card{background:#fff;border-radius:20px;border:1px solid #e2e8f0;padding:40px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.onb-card h1{font-size:26px;text-align:center;margin-bottom:4px}
+.onb-card .subtitle{text-align:center;color:#64748b;margin-bottom:32px;font-size:15px}
+.step-indicators{display:flex;justify-content:center;gap:8px;margin-bottom:32px}
+.step-dot{width:12px;height:12px;border-radius:50%;background:#e2e8f0;transition:all .3s}
+.step-dot.active{background:#2563eb;width:32px;border-radius:6px}
+.step-dot.done{background:#22c55e}
+.onb-step{display:none}.onb-step.active{display:block}
+.onb-step h2{font-size:20px;margin-bottom:8px;text-align:center}
+.onb-step .step-desc{color:#64748b;font-size:14px;text-align:center;margin-bottom:24px}
+.onb-next{width:100%;padding:14px;font-size:16px;margin-top:16px}
+.onb-skip{display:block;text-align:center;margin-top:12px;color:#94a3b8;font-size:14px;text-decoration:none}
+.onb-preview{background:#f8fafc;border-radius:16px;padding:24px;text-align:center;border:1px solid #e2e8f0;margin:16px 0}
+.onb-preview .preview-name{font-size:20px;font-weight:700;margin-bottom:4px}
+.onb-preview .preview-stars{font-size:32px;letter-spacing:4px}
+.onb-qr{width:200px;height:200px;margin:16px auto;display:block;border-radius:12px}
+@media(max-width:480px){.onb-card{padding:24px 20px}.onb-card h1{font-size:22px}}
+</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</a><div></div></div></nav>
+<div class="onb-wrap"><div class="onb-card">
+<h1>🎉 Welcome to ReviewFlow!</h1>
+<p class="subtitle">Let's get your review page live in 4 easy steps</p>
+<div class="step-indicators"><div class="step-dot active" id="dot0"></div><div class="step-dot" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
+
+<div class="onb-step active" id="step0">
+<h2>1. Your Business Name</h2>
+<p class="step-desc">What's the name customers know you by?</p>
+<div class="form-group"><input type="text" id="ob-name" placeholder="e.g. Joe's Coffee Shop" value="${esc(user.business_name||'')}" style="font-size:18px;padding:14px 18px;text-align:center"></div>
+<div class="form-group"><label>Business Type</label><select id="ob-type" style="text-align:center">${['Restaurant','Salon/Spa','Dental Office','Medical Practice','Auto Shop','Real Estate','Legal Services','Home Services','Retail Store','Fitness/Gym','Other'].map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+<button class="btn btn-primary onb-next" onclick="goStep(1)">Continue →</button>
+</div>
+
+<div class="onb-step" id="step1">
+<h2>2. Google Review Link</h2>
+<p class="step-desc">Paste the link where customers leave Google reviews</p>
+<div class="form-group"><input type="url" id="ob-url" placeholder="https://g.page/r/..." style="font-size:16px;padding:14px 18px">
+<div class="form-hint" style="margin-top:8px">💡 Go to your Google Business Profile → click "Ask for reviews" → copy the link</div></div>
+<button class="btn btn-primary onb-next" onclick="goStep(2)">Continue →</button>
+<a href="#" class="onb-skip" onclick="goStep(2);return false">I'll add this later</a>
+</div>
+
+<div class="onb-step" id="step2">
+<h2>3. Customize Your Page</h2>
+<p class="step-desc">Pick a brand color for your review page</p>
+<div style="text-align:center;margin-bottom:20px"><input type="color" id="ob-color" value="#2563eb" style="width:80px;height:80px;border:3px solid #e2e8f0;border-radius:16px;cursor:pointer;padding:6px" oninput="updatePreview()"></div>
+<div class="onb-preview"><div class="preview-name" id="ob-preview-name">Your Business</div><div style="color:#64748b;font-size:14px;margin-bottom:8px">How was your experience?</div>
+<div class="preview-stars">⭐⭐⭐⭐⭐</div></div>
+<button class="btn btn-primary onb-next" onclick="goStep(3)">Continue →</button>
+</div>
+
+<div class="onb-step" id="step3">
+<h2>4. You're All Set! 🚀</h2>
+<p class="step-desc">Your review page is being created...</p>
+<div id="ob-final" style="text-align:center;padding:20px">
+<div style="font-size:48px;margin-bottom:16px">⏳</div>
+<p style="color:#64748b">Creating your page...</p>
+</div>
+</div>
+
+</div></div>
+<script>
+let currentStep=0;
+function goStep(n){
+  if(n===1&&!document.getElementById('ob-name').value.trim()){document.getElementById('ob-name').style.borderColor='#ef4444';return}
+  if(n===3){createLocation();return}
+  document.querySelectorAll('.onb-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  for(let i=0;i<4;i++){const d=document.getElementById('dot'+i);d.className='step-dot'+(i<n?' done':i===n?' active':'')}
+  currentStep=n;
+  if(n===2)updatePreview();
+}
+function updatePreview(){document.getElementById('ob-preview-name').textContent=document.getElementById('ob-name').value||'Your Business'}
+async function createLocation(){
+  goStepUI(3);
+  const name=document.getElementById('ob-name').value.trim()||'My Business';
+  const url=document.getElementById('ob-url').value.trim()||'https://g.page/review';
+  const color=document.getElementById('ob-color').value;
+  const type=document.getElementById('ob-type').value;
+  try{
+    const r=await fetch('/api/onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business_name:name,google_review_url:url,primary_color:color,business_type:type})});
+    const d=await r.json();
+    if(d.success){
+      document.getElementById('ob-final').innerHTML='<div style="font-size:48px;margin-bottom:16px">🎉</div><h3 style="margin-bottom:8px">Your review page is live!</h3><p style="color:#64748b;margin-bottom:20px">Share this link with your customers:</p>'
+        +'<div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:20px;word-break:break-all"><a href="'+d.url+'" target="_blank" style="color:#16a34a;font-weight:600;font-size:16px">'+d.url+'</a></div>'
+        +(d.qr?'<img src="'+d.qr+'" class="onb-qr" alt="QR Code">':'')
+        +'<div style="display:flex;gap:12px;margin-top:20px;justify-content:center;flex-wrap:wrap"><a href="/dashboard" class="btn btn-primary" style="padding:14px 32px">Go to Dashboard →</a>'
+        +'<button onclick="navigator.clipboard.writeText(\\''+d.url+'\\');this.textContent=\\'Copied!\\'" class="btn btn-secondary">Copy Link</button></div>';
+    } else {
+      document.getElementById('ob-final').innerHTML='<div class="alert alert-error">'+d.error+'</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>';
+    }
+  }catch(e){document.getElementById('ob-final').innerHTML='<div class="alert alert-error">Something went wrong</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>'}
+}
+function goStepUI(n){document.querySelectorAll('.onb-step').forEach(s=>s.classList.remove('active'));document.getElementById('step'+n).classList.add('active');for(let i=0;i<4;i++){const d=document.getElementById('dot'+i);d.className='step-dot'+(i<n?' done':i===n?' active':'')}}
+</script></body></html>`);
+});
+
+app.post('/api/onboarding', requireAuth, async (req, res) => {
+  const user = getUser(req);
+  const { business_name, google_review_url, primary_color, business_type } = req.body;
+  if (!business_name) return res.json({ error: 'Business name is required' });
+  const id = uuidv4();
+  const slug = business_name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+id.slice(0,6);
+  const gurl = google_review_url || 'https://g.page/review';
+  db.prepare('INSERT INTO locations (id,user_id,slug,business_name,business_type,google_review_url,primary_color,gate_threshold) VALUES (?,?,?,?,?,?,?,?)').run(id,user.id,slug,business_name,business_type||'',gurl,primary_color||'#2563eb',4);
+  db.prepare('UPDATE users SET business_name=? WHERE id=?').run(business_name, user.id);
+  const url = `${BASE_URL}/r/${slug}`;
+  let qr = '';
+  try { qr = await QRCode.toDataURL(url, { width: 300, margin: 2 }); } catch(e) {}
+  res.json({ success: true, url, qr, slug });
+});
+
+// ===== TERMS & PRIVACY =====
+app.get('/terms', (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Terms of Service — ReviewFlow</title>${css()}</head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div class="nav-links"><a href="/">Home</a></div></div></nav>
+<div class="container" style="max-width:720px;padding:60px 24px"><h1 style="font-size:32px;margin-bottom:8px">Terms of Service</h1><p style="color:#64748b;margin-bottom:32px">Last updated: February 2026</p>
+<div style="line-height:1.8;color:#475569">
+<h2 style="color:#1e293b;margin:24px 0 8px">1. Acceptance of Terms</h2><p>By using ReviewFlow, you agree to these terms. If you don't agree, please don't use our service.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">2. Service Description</h2><p>ReviewFlow provides tools to collect and manage customer reviews for local businesses, including review pages, QR codes, and analytics.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">3. User Accounts</h2><p>You're responsible for maintaining the security of your account. You must provide accurate information when creating an account.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">4. Acceptable Use</h2><p>You agree not to: use fake reviews, impersonate others, abuse the system, or violate any applicable laws.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">5. Billing & Subscriptions</h2><p>Paid plans are billed monthly. You can cancel at any time. Refunds are handled on a case-by-case basis.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">6. Limitation of Liability</h2><p>ReviewFlow is provided "as is." We make no warranties and are not liable for any damages arising from use of the service.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>Questions? Email us at <a href="mailto:support@reviewflow.com">support@reviewflow.com</a>.</p>
+</div></div>${footer()}</body></html>`);
+});
+
+app.get('/privacy', (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Privacy Policy — ReviewFlow</title>${css()}</head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div class="nav-links"><a href="/">Home</a></div></div></nav>
+<div class="container" style="max-width:720px;padding:60px 24px"><h1 style="font-size:32px;margin-bottom:8px">Privacy Policy</h1><p style="color:#64748b;margin-bottom:32px">Last updated: February 2026</p>
+<div style="line-height:1.8;color:#475569">
+<h2 style="color:#1e293b;margin:24px 0 8px">1. Information We Collect</h2><p>We collect information you provide: email, business name, and review data from your customers (ratings, optional name/email, feedback text).</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">2. How We Use It</h2><p>We use your data to provide the ReviewFlow service: displaying review pages, generating analytics, and managing your account.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">3. Data Sharing</h2><p>We don't sell your data. We share it only with Stripe for payment processing and with service providers necessary to operate ReviewFlow.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">4. Data Retention</h2><p>We keep your data as long as your account is active. You can request deletion at any time by contacting us.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">5. Security</h2><p>We use industry-standard security measures including encryption, secure sessions, and hashed passwords.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">6. Cookies</h2><p>We use essential cookies for authentication. No tracking cookies or third-party analytics.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>For privacy questions, email <a href="mailto:support@reviewflow.com">support@reviewflow.com</a>.</p>
+</div></div>${footer()}</body></html>`);
+});
+
+// ===== TEMPLATES PAGE =====
+app.get('/templates', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const locations = db.prepare('SELECT * FROM locations WHERE user_id = ? ORDER BY created_at DESC').all(user.id);
+  const loc = locations[0];
+  const bname = loc ? loc.business_name : (user.business_name || 'Your Business');
+  const rlink = loc ? `${BASE_URL}/r/${loc.slug}` : `${BASE_URL}/r/your-link`;
+
+  const templates = [
+    { cat: '💬 SMS Templates', items: [
+      { title: 'After Visit — Friendly', text: `Hi! Thanks for visiting ${bname}. We'd love your feedback — takes 30 seconds: ${rlink}` },
+      { title: 'After Visit — Professional', text: `Thank you for choosing ${bname}. Your opinion matters to us! Please share your experience: ${rlink}` },
+      { title: 'Follow-Up Reminder', text: `Hi! Just a quick reminder — we'd really appreciate your feedback on ${bname}. It only takes a moment: ${rlink}` },
+      { title: 'After Service Completion', text: `Thanks for letting ${bname} take care of you! How did we do? ${rlink}` },
+    ]},
+    { cat: '✉️ Email Templates', items: [
+      { title: 'Standard Review Request', text: `Subject: How was your visit to ${bname}?\n\nHi there,\n\nThank you for choosing ${bname}! We hope you had a great experience.\n\nWould you mind taking 30 seconds to share your feedback? It helps us improve and helps others discover us.\n\n👉 ${rlink}\n\nThank you so much!\nThe ${bname} Team` },
+      { title: 'Personal Touch', text: `Subject: A quick favor from ${bname}\n\nHi,\n\nI personally wanted to thank you for your visit to ${bname}. Your support means the world to us.\n\nIf you have a moment, we'd love to hear how we did:\n\n👉 ${rlink}\n\nEvery review helps our small business grow. Thank you!\n\nWarm regards,\n${bname}` },
+      { title: 'Post-Purchase', text: `Subject: We'd love your feedback!\n\nHi there,\n\nThanks for your recent purchase at ${bname}! We hope you love it.\n\nYour honest feedback helps us serve you better:\n\n👉 ${rlink}\n\nThank you for being a valued customer!\n\nBest,\n${bname}` },
+    ]},
+    { cat: '🖨️ Print / In-Store', items: [
+      { title: 'Receipt Message', text: `Enjoyed your visit? We'd love your feedback!\nScan the QR code or visit: ${rlink}` },
+      { title: 'Table Tent / Counter Sign', text: `⭐ Love ${bname}?\nTell us about your experience!\nScan to leave a review →\n${rlink}` },
+    ]},
+  ];
+
+  let html = `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+<h1 style="font-size:28px">📋 Ready-Made Templates</h1></div>
+<p style="color:#64748b;margin-bottom:8px">Copy-paste these templates to request reviews from your customers. Your business name and review link are already filled in!</p>`;
+
+  if (locations.length > 1) {
+    html += `<div class="card" style="padding:12px 16px;margin-bottom:16px"><span style="font-size:14px;color:#64748b">Templates are using: <strong>${esc(bname)}</strong></span></div>`;
+  }
+
+  templates.forEach(cat => {
+    html += `<h2 style="font-size:20px;margin:24px 0 12px">${cat.cat}</h2>`;
+    cat.items.forEach((t, i) => {
+      const tid = cat.cat.slice(0,3).replace(/[^a-z]/gi,'') + i;
+      html += `<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h3 style="font-size:16px">${t.title}</h3>
+<button onclick="navigator.clipboard.writeText(document.getElementById('t${tid}').value);this.textContent='✓ Copied!';setTimeout(()=>this.textContent='Copy',2000)" class="btn btn-primary btn-sm">Copy</button></div>
+<textarea id="t${tid}" rows="${t.text.split('\n').length + 1}" style="background:#f8fafc;font-size:14px;line-height:1.6" readonly>${esc(t.text)}</textarea></div>`;
+    });
   });
-}).catch(err => { console.error('DB init failed:', err); process.exit(1); });
+
+  res.send(dashLayout(user, `<div style="max-width:700px;margin:0 auto">${html}</div>`));
+});
+
+// ===== 404 PAGE =====
+function notFoundPage() {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Page Not Found — ReviewFlow</title>${css()}
+<style>body{background:#f8fafc;min-height:100vh;display:flex;flex-direction:column}
+.nf{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 24px}</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
+<div class="nav-links"><a href="/">Home</a><a href="/login">Log In</a></div></div></nav>
+<div class="nf"><div>
+<div style="font-size:96px;margin-bottom:16px">🔍</div>
+<h1 style="font-size:48px;font-weight:800;color:#1e293b;margin-bottom:8px">404</h1>
+<p style="font-size:20px;color:#64748b;margin-bottom:32px">This page doesn't exist — but your next 5-star review does.</p>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+<a href="/" class="btn btn-primary">Go Home</a>
+<a href="/signup" class="btn btn-secondary">Start Collecting Reviews</a>
+</div></div></div>
+${footer()}</body></html>`;
+}
+
+app.use((req, res) => { res.status(404).send(notFoundPage()); });
+
+app.listen(PORT, '0.0.0.0', () => console.log(`ReviewFlow running on port ${PORT} — ${BASE_URL}`));
