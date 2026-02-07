@@ -6,10 +6,10 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const router = express.Router();
 
-// Create checkout session for Pro plan
 router.post('/checkout', authMiddleware, async (req, res) => {
   try {
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    if (user.plan === 'pro') return res.status(400).json({ error: "You're already on the Pro plan!" });
     
     let customerId = user.stripe_customer_id;
     if (!customerId) {
@@ -38,11 +38,11 @@ router.post('/checkout', authMiddleware, async (req, res) => {
 
     res.json({ url: session.url });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Stripe checkout error:', e);
+    res.status(500).json({ error: 'Failed to create checkout session. Please try again.' });
   }
 });
 
-// Webhook
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const event = req.body;

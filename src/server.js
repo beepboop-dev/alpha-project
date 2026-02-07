@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3100;
 
 // Stripe webhook needs raw body
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

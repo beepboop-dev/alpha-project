@@ -21,6 +21,7 @@ const ready = (async () => {
     name TEXT NOT NULL, company TEXT DEFAULT '', logo_url TEXT DEFAULT '',
     brand_color TEXT DEFAULT '#2563eb', plan TEXT DEFAULT 'free',
     stripe_customer_id TEXT, stripe_subscription_id TEXT,
+    email_notifications INTEGER DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS proposals (
@@ -30,7 +31,8 @@ const ready = (async () => {
     status TEXT DEFAULT 'draft', valid_until TEXT, currency TEXT DEFAULT 'USD',
     discount_percent REAL DEFAULT 0, tax_percent REAL DEFAULT 0,
     accepted_at TEXT, accepted_signature TEXT, view_count INTEGER DEFAULT 0,
-    last_viewed_at TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))
+    last_viewed_at TEXT, is_sample INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS line_items (
     id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL, description TEXT NOT NULL,
@@ -40,6 +42,10 @@ const ready = (async () => {
     id INTEGER PRIMARY KEY AUTOINCREMENT, proposal_id TEXT NOT NULL,
     ip TEXT, user_agent TEXT, viewed_at TEXT DEFAULT (datetime('now'))
   )`);
+
+  // Migrations for existing DBs
+  try { db.run('ALTER TABLE users ADD COLUMN email_notifications INTEGER DEFAULT 1'); } catch {}
+  try { db.run('ALTER TABLE proposals ADD COLUMN is_sample INTEGER DEFAULT 0'); } catch {}
 
   save();
   return db;
@@ -52,10 +58,8 @@ function save() {
   }
 }
 
-// Auto-save every 30s
 setInterval(save, 30000);
 
-// Wrapper that mimics better-sqlite3 API
 const wrapper = {
   ready,
   prepare(sql) {
