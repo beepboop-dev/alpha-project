@@ -218,4 +218,63 @@ router.get('/public/:token/pdf-data', (req, res) => {
   res.json({ proposal, sender: user });
 });
 
+
+// Analytics endpoint
+router.get('/stats/analytics', authMiddleware, (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Overall stats
+    const total = db.prepare('SELECT COUNT(*) as c FROM proposals WHERE user_id = ?').get(userId).c;
+    const sent = db.prepare("SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND status = 'sent'").get(userId).c;
+    const accepted = db.prepare("SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND status = 'accepted'").get(userId).c;
+    const declined = db.prepare("SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND status = 'declined'").get(userId).c;
+    const draft = db.prepare("SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND status = 'draft'").get(userId).c;
+    const archived = db.prepare("SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND status = 'archived'").get(userId).c;
+    
+    const totalViews = db.prepare('SELECT COALESCE(SUM(view_count),0) as c FROM proposals WHERE user_id = ?').get(userId).c;
+    const viewedProposals = db.prepare('SELECT COUNT(*) as c FROM proposals WHERE user_id = ? AND view_count > 0').get(userId).c;
+    
+    // Value pipeline
+    const totalValue = db.prepare('SELECT COALESCE(SUM(li.quantity * li.unit_price),0) as v FROM line_items li JOIN proposals p ON li.proposal_id = p.id WHERE p.user_id = ?').get(userId).v;
+    const sentValue = db.prepare("SELECT COALESCE(SUM(li.quantity * li.unit_price),0) as v FROM line_items li JOIN proposals p ON li.proposal_id = p.id WHERE p.user_id = ? AND p.status = 'sent'").get(userId).v;
+    const acceptedValue = db.prepare("SELECT COALESCE(SUM(li.quantity * li.unit_price),0) as v FROM line_items li JOIN proposals p ON li.proposal_id = p.id WHERE p.user_id = ? AND p.status = 'accepted'").get(userId).v;
+    const draftValue = db.prepare("SELECT COALESCE(SUM(li.quantity * li.unit_price),0) as v FROM line_items li JOIN proposals p ON li.proposal_id = p.id WHERE p.user_id = ? AND p.status = 'draft'").get(userId).v;
+    
+    // Recent activity (last 10 views)
+    const recentViews = db.prepare(`
+      SELECT pv.viewed_at, p.title, p.id as proposal_id 
+      FROM proposal_views pv 
+      JOIN proposals p ON pv.proposal_id = p.id 
+      WHERE p.user_id = ? 
+      ORDER BY pv.viewed_at DESC LIMIT 10
+    `).all(userId);
+    
+    // Top proposals by views
+    const topByViews = db.prepare(`
+      SELECT p.id, p.title, p.view_count, p.status,
+        (SELECT SUM(quantity * unit_price) FROM line_items WHERE proposal_id = p.id) as value
+      FROM proposals p WHERE p.user_id = ? AND p.view_count > 0
+      ORDER BY p.view_count DESC LIMIT 5
+    `).all(userId);
+    
+    // Win rate
+    const closedDeals = sent + accepted + declined;
+    const winRate = closedDeals > 0 ? Math.round((accepted / closedDeals) * 100) : 0;
+    
+    res.json({
+      counts: { total, draft, sent, accepted, declined, archived },
+      views: { total: totalViews, proposalsViewed: viewedProposals },
+      pipeline: { total: totalValue, draft: draftValue, sent: sentValue, accepted: acceptedValue },
+      winRate,
+      recentViews,
+      topByViews
+    });
+  } catch (e) {
+    console.error('Analytics error:', e);
+    res.status(500).json({ error: 'Failed to load analytics' });
+  }
+});
+
+
 module.exports = router;

@@ -241,6 +241,8 @@ nav .nav-links a:hover { color: var(--primary); }
   .editor-section .three-col { grid-template-columns: 1fr !important; }
   .container { padding: 20px 16px; }
   .dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+  div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 480px) {
   .hero h1 { font-size: 1.8rem; }
@@ -257,6 +259,43 @@ nav .nav-links a:hover { color: var(--primary); }
   .card { border: none; box-shadow: none; }
   .public-proposal { margin: 0; }
 }
+
+/* Template Library */
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: 24px 0; }
+.template-card { padding: 24px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; position: relative; }
+.template-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.template-card.selected { border-color: var(--primary); background: var(--primary-light); }
+.template-card .template-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.template-card h3 { margin-bottom: 6px; font-size: 1.05rem; }
+.template-card p { color: var(--text-light); font-size: 0.85rem; line-height: 1.5; }
+.template-card .template-value { margin-top: 10px; font-weight: 700; color: var(--primary); font-size: 0.9rem; }
+.template-card .template-items { margin-top: 6px; font-size: 0.8rem; color: var(--text-light); }
+
+/* Analytics */
+.analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.analytics-card { text-align: center; padding: 24px 16px; }
+.analytics-card .analytics-value { font-size: 2.2rem; font-weight: 800; }
+.analytics-card .analytics-label { color: var(--text-light); font-size: 0.85rem; margin-top: 4px; }
+.analytics-card.primary .analytics-value { color: var(--primary); }
+.analytics-card.success .analytics-value { color: var(--success); }
+.analytics-card.warning .analytics-value { color: var(--warning); }
+.analytics-card.danger .analytics-value { color: var(--danger); }
+.pipeline-bar { display: flex; height: 32px; border-radius: 8px; overflow: hidden; margin: 16px 0; background: var(--bg); }
+.pipeline-segment { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: white; min-width: 2px; transition: width 0.5s; }
+.pipeline-legend { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0 24px; }
+.pipeline-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-light); }
+.pipeline-legend-item .dot { width: 12px; height: 12px; border-radius: 3px; }
+.activity-list { list-style: none; }
+.activity-list li { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+.activity-list li:last-child { border-bottom: none; }
+.top-proposals-table { width: 100%; border-collapse: collapse; }
+.top-proposals-table th { text-align: left; padding: 10px 12px; font-size: 0.8rem; color: var(--text-light); border-bottom: 2px solid var(--border); }
+.top-proposals-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.status-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 16px 0; }
+.status-item { text-align: center; padding: 16px 8px; border-radius: 8px; }
+.status-item .count { font-size: 1.5rem; font-weight: 800; }
+.status-item .label { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
+
 </style>
 </head>
 <body>
@@ -328,7 +367,9 @@ function route() {
   if (path === '/pricing') return renderPricing();
   if (path === '/settings') return renderSettings();
   if (path.startsWith('/edit/')) return renderEditor(path.split('/edit/')[1]);
-  if (path === '/new') return renderEditor(null);
+  if (path === '/new') return renderTemplateSelector();
+  if (path === '/new-from-template') return renderEditor(null);
+  if (path === '/analytics') return renderAnalytics();
   return renderDashboard();
 }
 
@@ -337,6 +378,7 @@ function renderNav() {
   if (currentUser) {
     nav.innerHTML = `
       <a href="/dashboard" onclick="event.preventDefault();navigate('/dashboard')">Dashboard</a>
+      <a href="/analytics" onclick="event.preventDefault();navigate('/analytics')">Analytics</a>
       <a href="/pricing" onclick="event.preventDefault();navigate('/pricing')" class="hide-mobile">Pricing</a>
       <a href="/settings" onclick="event.preventDefault();navigate('/settings')">Settings</a>
       <button class="btn btn-secondary btn-sm" onclick="logout()">Log out</button>
@@ -612,7 +654,7 @@ async function renderDashboard() {
           <h1>Dashboard</h1>
           <p style="color:var(--text-light)">${currentUser.plan === 'pro' ? '⭐ Pro Plan' : `Free Plan (${realProposals.filter(p=>p.status!=='archived').length}/5 proposals) · <a href="/pricing" onclick="event.preventDefault();navigate('/pricing')">Upgrade</a>`}</p>
         </div>
-        <button class="btn btn-primary" onclick="navigate('/new')">+ New Proposal</button>
+        <div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="navigate('/new')">+ New Proposal</button></div>
       </div>
       <div class="dash-stats">
         <div class="card stat-card"><div class="stat-value">${proposals.length}</div><div class="stat-label">Total Proposals</div></div>
@@ -664,7 +706,15 @@ async function renderEditor(proposalId) {
     } catch { toast('Proposal not found', 'error'); return navigate('/dashboard'); }
   }
 
-  const p = proposal || { title: '', client_name: '', client_email: '', client_company: '', intro_text: '', terms_text: '', currency: 'USD', discount_percent: 0, tax_percent: 0, valid_until: '', status: 'draft', line_items: [], share_token: '', is_sample: 0 };
+  const tplData = window._pendingTemplate || null;
+  window._pendingTemplate = null;
+  const p = proposal || {
+    title: tplData?.title || '', client_name: '', client_email: '', client_company: '',
+    intro_text: tplData?.intro_text || '', terms_text: tplData?.terms_text || '',
+    currency: 'USD', discount_percent: tplData?.discount_percent || 0,
+    tax_percent: tplData?.tax_percent || 0, valid_until: '', status: 'draft',
+    line_items: tplData?.line_items || [], share_token: '', is_sample: 0
+  };
   if (!p.line_items.length) p.line_items = [{ description: '', quantity: 1, unit_price: 0 }];
 
   const isNew = !proposalId;
@@ -1283,6 +1333,303 @@ async function toggleEmailNotifications(enabled) {
     toast(enabled ? 'Email notifications enabled' : 'Email notifications disabled', 'success');
   } catch (err) { toast(err.message, 'error'); }
 }
+
+
+// ========================= TEMPLATE LIBRARY =========================
+const PROPOSAL_TEMPLATES = {
+  blank: {
+    name: 'Blank Proposal',
+    icon: '📄',
+    description: 'Start from scratch with a blank proposal.',
+    data: { title: '', intro_text: '', terms_text: '', line_items: [{ description: '', quantity: 1, unit_price: 0 }], discount_percent: 0, tax_percent: 0 }
+  },
+  web_design: {
+    name: 'Web Design',
+    icon: '🎨',
+    description: 'Professional website design and development proposal with UX, design, and development phases.',
+    data: {
+      title: 'Website Design & Development Proposal',
+      intro_text: 'Thank you for considering us for your website project. We specialize in creating modern, responsive websites that not only look stunning but also drive results.\n\nOur process includes discovery, wireframing, visual design, development, and thorough testing to ensure your new website exceeds expectations. We focus on user experience, performance, and SEO best practices to maximize your online presence.',
+      terms_text: '• 50% deposit required to begin work\n• 25% due at design approval, 25% at launch\n• Includes 3 rounds of design revisions\n• Timeline: 6-8 weeks from project kickoff\n• 30-day post-launch support included\n• Additional revisions billed at $150/hour\n• All source files delivered upon final payment',
+      line_items: [
+        { description: 'Discovery & Strategy Workshop', quantity: 1, unit_price: 1500 },
+        { description: 'UX Wireframes & Site Architecture', quantity: 1, unit_price: 2000 },
+        { description: 'Visual Design (Homepage + 6 Pages)', quantity: 7, unit_price: 800 },
+        { description: 'Responsive Frontend Development', quantity: 1, unit_price: 5000 },
+        { description: 'CMS Setup & Content Migration', quantity: 1, unit_price: 1500 },
+        { description: 'SEO Optimization & Analytics Setup', quantity: 1, unit_price: 750 },
+        { description: 'Quality Assurance & Browser Testing', quantity: 1, unit_price: 500 }
+      ],
+      discount_percent: 0,
+      tax_percent: 0
+    }
+  },
+  marketing: {
+    name: 'Marketing Campaign',
+    icon: '📣',
+    description: 'Digital marketing campaign proposal covering strategy, content, ads, and reporting.',
+    data: {
+      title: 'Digital Marketing Campaign Proposal',
+      intro_text: 'We\'re excited to present our comprehensive digital marketing strategy designed to increase your brand visibility, drive qualified traffic, and boost conversions.\n\nOur data-driven approach combines content marketing, paid advertising, and social media management to create a cohesive campaign that delivers measurable results. We\'ll provide detailed monthly reports so you can track ROI every step of the way.',
+      terms_text: '• 3-month minimum commitment recommended for optimal results\n• Monthly retainer billed on the 1st of each month\n• Ad spend is billed separately and directly by platforms\n• Monthly strategy call and performance report included\n• 30-day cancellation notice required\n• All created content and assets belong to the client',
+      line_items: [
+        { description: 'Marketing Strategy & Audience Research', quantity: 1, unit_price: 2000 },
+        { description: 'Content Creation (Blog Posts, 8/month)', quantity: 8, unit_price: 250 },
+        { description: 'Social Media Management (3 platforms)', quantity: 3, unit_price: 600 },
+        { description: 'Google Ads Campaign Setup & Management', quantity: 1, unit_price: 1500 },
+        { description: 'Email Marketing (4 campaigns/month)', quantity: 4, unit_price: 300 },
+        { description: 'Monthly Analytics & ROI Reporting', quantity: 1, unit_price: 500 }
+      ],
+      discount_percent: 5,
+      tax_percent: 0
+    }
+  },
+  consulting: {
+    name: 'Consulting',
+    icon: '💼',
+    description: 'Business consulting engagement with assessment, strategy, and implementation support.',
+    data: {
+      title: 'Business Consulting Engagement Proposal',
+      intro_text: 'Based on our initial conversation, we\'ve prepared this proposal to address the key challenges and opportunities we identified for your organization.\n\nOur consulting approach is collaborative and results-focused. We begin with a thorough assessment of your current operations, develop data-backed recommendations, and support your team through implementation to ensure lasting impact.',
+      terms_text: '• Engagement begins upon signed agreement and deposit\n• 50% deposit required, remainder billed monthly\n• All deliverables include one round of revisions\n• Travel expenses (if applicable) billed at cost\n• Confidentiality agreement included\n• Weekly progress updates via email\n• Final presentation to stakeholders included',
+      line_items: [
+        { description: 'Current State Assessment & Stakeholder Interviews', quantity: 1, unit_price: 4000 },
+        { description: 'Data Analysis & Market Research', quantity: 1, unit_price: 3000 },
+        { description: 'Strategic Recommendations Report', quantity: 1, unit_price: 5000 },
+        { description: 'Implementation Roadmap & Action Plan', quantity: 1, unit_price: 2500 },
+        { description: 'Executive Workshop (half-day)', quantity: 1, unit_price: 3000 },
+        { description: 'Monthly Advisory Support (3 months)', quantity: 3, unit_price: 2000 }
+      ],
+      discount_percent: 0,
+      tax_percent: 0
+    }
+  },
+  development: {
+    name: 'Software Development',
+    icon: '💻',
+    description: 'Custom software or app development proposal with full project lifecycle coverage.',
+    data: {
+      title: 'Custom Software Development Proposal',
+      intro_text: 'We\'re pleased to present our proposal for developing your custom software solution. Our team of experienced developers will work closely with you to build a robust, scalable application that meets your exact requirements.\n\nWe follow agile methodology with 2-week sprints, ensuring you have visibility into progress and can provide feedback throughout the development process. Our commitment to clean code and thorough testing means you get a product that\'s reliable and maintainable.',
+      terms_text: '• Agile development with 2-week sprint cycles\n• 30% deposit, then milestone-based billing\n• Sprint demos every 2 weeks for stakeholder review\n• Source code delivered via private Git repository\n• 90-day warranty for bug fixes after launch\n• Change requests beyond scope billed at agreed hourly rate\n• Full technical documentation included',
+      line_items: [
+        { description: 'Technical Requirements & Architecture Design', quantity: 1, unit_price: 3500 },
+        { description: 'UI/UX Design & Interactive Prototypes', quantity: 1, unit_price: 4000 },
+        { description: 'Backend Development (API & Database)', quantity: 160, unit_price: 95 },
+        { description: 'Frontend Development', quantity: 120, unit_price: 90 },
+        { description: 'Third-Party API Integrations', quantity: 1, unit_price: 2500 },
+        { description: 'Testing & Quality Assurance', quantity: 40, unit_price: 85 },
+        { description: 'Deployment & DevOps Setup', quantity: 1, unit_price: 1500 },
+        { description: 'Documentation & Training', quantity: 1, unit_price: 1000 }
+      ],
+      discount_percent: 0,
+      tax_percent: 0
+    }
+  },
+  photography: {
+    name: 'Photography',
+    icon: '📷',
+    description: 'Professional photography services proposal for events, portraits, or commercial work.',
+    data: {
+      title: 'Professional Photography Services Proposal',
+      intro_text: 'Thank you for your interest in our photography services. We\'d love to capture your special moments with our signature style that blends candid storytelling with polished, magazine-quality imagery.\n\nEvery session includes professional editing, a private online gallery for easy sharing, and high-resolution digital files. We bring our own professional lighting and equipment, so all you need to worry about is looking your best.',
+      terms_text: '• 25% non-refundable booking deposit to reserve date\n• Remaining balance due 7 days before the session\n• Edited photos delivered within 2-3 weeks\n• Private online gallery active for 6 months\n• Print rights included for personal/commercial use\n• Rescheduling allowed with 48-hour notice\n• Additional hours available at $250/hour on-site',
+      line_items: [
+        { description: 'Pre-Session Planning & Location Scout', quantity: 1, unit_price: 200 },
+        { description: 'Photography Session (4 hours)', quantity: 4, unit_price: 300 },
+        { description: 'Professional Photo Editing (50 images)', quantity: 50, unit_price: 15 },
+        { description: 'Private Online Gallery Setup', quantity: 1, unit_price: 100 },
+        { description: 'High-Resolution Digital Downloads', quantity: 1, unit_price: 200 },
+        { description: 'Express Delivery (5 hero shots in 48hrs)', quantity: 1, unit_price: 150 }
+      ],
+      discount_percent: 0,
+      tax_percent: 0
+    }
+  }
+};
+
+function getTemplateValue(tpl) {
+  return tpl.data.line_items.reduce((s, li) => s + li.quantity * li.unit_price, 0);
+}
+
+function renderTemplateSelector() {
+  document.getElementById('app').innerHTML = `
+    <div class="container page">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1>Choose a Template</h1>
+          <p style="color:var(--text-light);margin-top:4px">Pick a template to get started quickly, or start from scratch.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('/dashboard')">← Back to Dashboard</button>
+      </div>
+      <div class="template-grid">
+        ${Object.entries(PROPOSAL_TEMPLATES).map(([key, tpl]) => `
+          <div class="card template-card" onclick="useTemplate('${key}')">
+            <div class="template-icon">${tpl.icon}</div>
+            <h3>${tpl.name}</h3>
+            <p>${tpl.description}</p>
+            ${key !== 'blank' ? `
+              <div class="template-value">Starting at ${formatMoney(getTemplateValue(tpl))}</div>
+              <div class="template-items">${tpl.data.line_items.length} line items included</div>
+            ` : '<div class="template-value" style="color:var(--text-light)">Empty canvas</div>'}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function useTemplate(key) {
+  const tpl = PROPOSAL_TEMPLATES[key];
+  if (!tpl) return;
+  // Store template data and go to editor
+  window._pendingTemplate = JSON.parse(JSON.stringify(tpl.data));
+  navigate('/new-from-template');
+}
+
+// ========================= ANALYTICS DASHBOARD =========================
+async function renderAnalytics() {
+  document.getElementById('app').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+  try {
+    const data = await api('/api/proposals/stats/analytics');
+    const { counts, views, pipeline, winRate, recentViews, topByViews } = data;
+    const pipelineTotal = pipeline.total || 1;
+    
+    document.getElementById('app').innerHTML = `
+      <div class="container page">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">
+          <div>
+            <h1>📊 Analytics</h1>
+            <p style="color:var(--text-light)">Track your proposal performance and pipeline</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('/dashboard')">← Back to Dashboard</button>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="card analytics-card primary">
+            <div class="analytics-value">${counts.total}</div>
+            <div class="analytics-label">Total Proposals</div>
+          </div>
+          <div class="card analytics-card" style="--c:#3b82f6">
+            <div class="analytics-value" style="color:#3b82f6">${counts.sent}</div>
+            <div class="analytics-label">Sent</div>
+          </div>
+          <div class="card analytics-card success">
+            <div class="analytics-value">${counts.accepted}</div>
+            <div class="analytics-label">Accepted</div>
+          </div>
+          <div class="card analytics-card warning">
+            <div class="analytics-value">${views.total}</div>
+            <div class="analytics-label">Total Views</div>
+          </div>
+          <div class="card analytics-card primary">
+            <div class="analytics-value">${winRate}%</div>
+            <div class="analytics-label">Win Rate</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          <div class="card" style="grid-column:1/-1">
+            <h3 style="margin-bottom:16px">💰 Value Pipeline</h3>
+            <div class="analytics-grid" style="margin-bottom:16px">
+              <div style="text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:var(--primary)">${formatMoney(pipeline.total)}</div>
+                <div style="color:var(--text-light);font-size:0.85rem">Total Pipeline</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#64748b">${formatMoney(pipeline.draft)}</div>
+                <div style="color:var(--text-light);font-size:0.85rem">In Drafts</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#3b82f6">${formatMoney(pipeline.sent)}</div>
+                <div style="color:var(--text-light);font-size:0.85rem">Awaiting Response</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:var(--success)">${formatMoney(pipeline.accepted)}</div>
+                <div style="color:var(--text-light);font-size:0.85rem">Won</div>
+              </div>
+            </div>
+            <div class="pipeline-bar">
+              ${pipeline.draft > 0 ? `<div class="pipeline-segment" style="width:${(pipeline.draft/pipelineTotal*100)}%;background:#94a3b8" title="Draft: ${formatMoney(pipeline.draft)}">${pipeline.draft/pipelineTotal>.08?'Draft':''}</div>` : ''}
+              ${pipeline.sent > 0 ? `<div class="pipeline-segment" style="width:${(pipeline.sent/pipelineTotal*100)}%;background:#3b82f6" title="Sent: ${formatMoney(pipeline.sent)}">${pipeline.sent/pipelineTotal>.08?'Sent':''}</div>` : ''}
+              ${pipeline.accepted > 0 ? `<div class="pipeline-segment" style="width:${(pipeline.accepted/pipelineTotal*100)}%;background:#10b981" title="Accepted: ${formatMoney(pipeline.accepted)}">${pipeline.accepted/pipelineTotal>.08?'Won':''}</div>` : ''}
+            </div>
+            <div class="pipeline-legend">
+              <div class="pipeline-legend-item"><div class="dot" style="background:#94a3b8"></div> Draft</div>
+              <div class="pipeline-legend-item"><div class="dot" style="background:#3b82f6"></div> Sent</div>
+              <div class="pipeline-legend-item"><div class="dot" style="background:#10b981"></div> Won</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:16px">📈 Status Breakdown</h3>
+            <div class="status-breakdown">
+              <div class="status-item" style="background:#f1f5f9">
+                <div class="count" style="color:#64748b">${counts.draft}</div>
+                <div class="label">Draft</div>
+              </div>
+              <div class="status-item" style="background:#dbeafe">
+                <div class="count" style="color:#2563eb">${counts.sent}</div>
+                <div class="label">Sent</div>
+              </div>
+              <div class="status-item" style="background:#d1fae5">
+                <div class="count" style="color:#059669">${counts.accepted}</div>
+                <div class="label">Accepted</div>
+              </div>
+              <div class="status-item" style="background:#fee2e2">
+                <div class="count" style="color:#dc2626">${counts.declined}</div>
+                <div class="label">Declined</div>
+              </div>
+              <div class="status-item" style="background:#f1f5f9">
+                <div class="count" style="color:#94a3b8">${counts.archived}</div>
+                <div class="label">Archived</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:16px">👁 Recent Views</h3>
+            ${recentViews.length > 0 ? `
+              <ul class="activity-list">
+                ${recentViews.map(v => `
+                  <li>
+                    <span style="cursor:pointer;color:var(--primary)" onclick="navigate('/edit/${v.proposal_id}')">${esc(truncate(v.title, 30))}</span>
+                    <span style="color:var(--text-light);font-size:0.8rem">${new Date(v.viewed_at).toLocaleString()}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p style="color:var(--text-light);text-align:center;padding:24px">No views yet. Share your proposals to start tracking!</p>'}
+          </div>
+
+          <div class="card" style="grid-column:1/-1">
+            <h3 style="margin-bottom:16px">🏆 Top Proposals by Views</h3>
+            ${topByViews.length > 0 ? `
+              <div style="overflow-x:auto">
+                <table class="top-proposals-table">
+                  <thead><tr><th>Proposal</th><th>Status</th><th>Views</th><th style="text-align:right">Value</th></tr></thead>
+                  <tbody>
+                    ${topByViews.map(p => `
+                      <tr style="cursor:pointer" onclick="navigate('/edit/${p.id}')">
+                        <td style="font-weight:600">${esc(truncate(p.title, 40))}</td>
+                        <td><span class="badge badge-${p.status}">${p.status}</span></td>
+                        <td>👁 ${p.view_count}</td>
+                        <td style="text-align:right;font-weight:600">${formatMoney(p.value || 0)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : '<p style="color:var(--text-light);text-align:center;padding:24px">No proposal views yet.</p>'}
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    toast('Failed to load analytics: ' + err.message, 'error');
+    navigate('/dashboard');
+  }
+}
+
 
 // ========================= BOOT =========================
 checkAuth();
