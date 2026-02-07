@@ -36,6 +36,23 @@ db.exec(`
 try { db.exec("ALTER TABLE locations ADD COLUMN header_text TEXT DEFAULT ''"); } catch(e) {}
 try { db.exec("ALTER TABLE locations ADD COLUMN logo_url TEXT DEFAULT ''"); } catch(e) {}
 try { db.exec("ALTER TABLE locations ADD COLUMN color_theme TEXT DEFAULT 'blue'"); } catch(e) {}
+try { db.exec("ALTER TABLE locations ADD COLUMN page_style TEXT DEFAULT 'professional'"); } catch(e) {}
+try { db.exec("ALTER TABLE locations ADD COLUMN custom_bg TEXT DEFAULT ''"); } catch(e) {}
+
+// Industry templates for onboarding autocomplete
+const INDUSTRY_TEMPLATES = {
+  "Restaurant": { sms: "Thanks for dining with us at {name}! We would love to hear about your meal: {link}", email: "Subject: How was your meal at {name}?\nThank you for dining at {name}! Share your experience:\n{link}", headerText: "How was your meal?", icon: "🍽️" },
+  "Salon/Spa": { sms: "Hope you love your new look from {name}! Share your experience: {link}", email: "Subject: Enjoying your new look from {name}?\nThank you for visiting {name}! Share your feedback:\n{link}", headerText: "How was your visit?", icon: "💇" },
+  "Dental Office": { sms: "Thanks for your visit to {name}! Your feedback helps us: {link}", email: "Subject: How was your appointment at {name}?\nThank you for choosing {name}. Share your feedback:\n{link}", headerText: "How was your appointment?", icon: "🦷" },
+  "Medical Practice": { sms: "Thank you for choosing {name}. We value your feedback: {link}", email: "Subject: Your visit to {name}\nThank you for trusting {name}. Share your feedback:\n{link}", headerText: "How was your experience?", icon: "🏥" },
+  "Auto Shop": { sms: "Thanks for bringing your car to {name}! How did we do? {link}", email: "Subject: How was your service at {name}?\nThank you for trusting {name} with your vehicle.\n{link}", headerText: "How was your service?", icon: "🔧" },
+  "Real Estate": { sms: "Thanks for working with {name}! Your review means a lot: {link}", email: "Subject: How was your experience with {name}?\nThank you for choosing {name}. Share your experience:\n{link}", headerText: "How was your experience?", icon: "🏠" },
+  "Legal Services": { sms: "Thank you for choosing {name}. Your feedback is valued: {link}", email: "Subject: Your experience with {name}\nThank you for trusting {name}. Your honest review helps others:\n{link}", headerText: "How was your experience?", icon: "⚖️" },
+  "Home Services": { sms: "Thanks for choosing {name}! Happy with the work? Let us know: {link}", email: "Subject: How did {name} do?\nThank you for choosing {name}! Your feedback helps us grow:\n{link}", headerText: "How was the service?", icon: "🏡" },
+  "Retail Store": { sms: "Thanks for shopping at {name}! Tell us about your experience: {link}", email: "Subject: How was your shopping at {name}?\nThank you for visiting {name}! Share your experience:\n{link}", headerText: "How was your shopping experience?", icon: "🛍️" },
+  "Fitness/Gym": { sms: "Great workout at {name}? Share your experience: {link}", email: "Subject: How is your experience at {name}?\nThank you for being part of the {name} community!\n{link}", headerText: "How is your experience?", icon: "💪" },
+  "Other": { sms: "Thanks for choosing {name}! Share your feedback: {link}", email: "Subject: How was your experience with {name}?\nThank you for choosing {name}! Share your experience:\n{link}", headerText: "How was your experience?", icon: "⭐" },
+};
 
 function requireAuth(req, res, next) { if (!req.session.userId) return res.redirect('/login'); next(); }
 function getUser(req) { if (!req.session.userId) return null; return db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId); }
@@ -339,7 +356,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
   // Aggregate stats bar
   let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">
 <div><h1 style="font-size:28px;margin-bottom:4px">Dashboard</h1><p style="color:#64748b;font-size:14px">Welcome back${user.business_name ? ', '+esc(user.business_name) : ''}!</p></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/templates" class="btn btn-secondary btn-sm">📋 Templates</a><a href="/locations/new" class="btn btn-primary btn-sm">+ Add Location</a></div></div>`;
+<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/guides" class="btn btn-secondary btn-sm">🚀 Get Reviews</a><a href="/templates" class="btn btn-secondary btn-sm">📋 Templates</a><a href="/locations/new" class="btn btn-primary btn-sm">+ Add Location</a></div></div>`;
   
   html += `<div class="stat-grid" style="margin-bottom:24px">
 <div class="stat-card" style="border-left:4px solid #2563eb"><div class="stat-value">${aggTotal}</div><div class="stat-label">Total Reviews</div></div>
@@ -361,6 +378,22 @@ app.get('/dashboard', requireAuth, (req, res) => {
     html += `</div>`;
   }
 
+  // Quick Actions
+  if (locs.length) {
+    const firstLoc = locs[0];
+    const reviewUrl = `${BASE_URL}/r/${firstLoc.slug}`;
+    html += `<div class="card" style="margin-bottom:24px;border:2px solid #2563eb;background:linear-gradient(135deg,#eff6ff,#fff)">
+<h3 style="font-size:17px;margin-bottom:16px">⚡ Quick Actions</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+<button onclick="navigator.clipboard.writeText('${reviewUrl}');this.innerHTML='✓ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Review Link',2000)" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📋 Copy Review Link</button>
+<a href="/locations/${firstLoc.id}/qr" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📱 Download QR Code</a>
+<a href="/r/${firstLoc.slug}" target="_blank" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">👁️ Preview Review Page</a>
+<a href="/locations/${firstLoc.id}/share" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📤 Send Review Request</a>
+<a href="/locations/${firstLoc.id}/style" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🎨 Page Style</a>
+<a href="/guides" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🚀 Get More Reviews</a>
+</div></div>`;
+  }
+
   html += `<h2 style="font-size:20px;margin-bottom:16px">Your Locations</h2>`;
 
   if (!locs.length) {
@@ -379,6 +412,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
 <a href="/locations/${l.id}/qr" class="btn btn-secondary btn-sm">QR Code</a>
 <a href="/locations/${l.id}/share" class="btn btn-secondary btn-sm">Share</a>
 <a href="/locations/${l.id}/analytics" class="btn btn-secondary btn-sm">Analytics</a>
+<a href="/locations/${l.id}/style" class="btn btn-secondary btn-sm">Style</a>
 <a href="/locations/${l.id}/edit" class="btn btn-secondary btn-sm">Edit</a>
 </div></div>
 <div class="stat-grid">
@@ -423,9 +457,9 @@ app.get('/locations/:id/edit', requireAuth, (req, res) => {
 
 app.post('/locations/:id/edit', requireAuth, (req, res) => {
   const user = getUser(req);
-  const { business_name, business_type, google_review_url, primary_color, gate_threshold, thank_you_message, header_text, logo_url, color_theme } = req.body;
-  db.prepare('UPDATE locations SET business_name=?,business_type=?,google_review_url=?,primary_color=?,gate_threshold=?,thank_you_message=?,header_text=?,logo_url=?,color_theme=? WHERE id=? AND user_id=?')
-    .run(business_name,business_type||'',google_review_url,primary_color||'#2563eb',parseInt(gate_threshold)||4,thank_you_message||'Thank you!',header_text||'',logo_url||'',color_theme||'blue',req.params.id,user.id);
+  const { business_name, business_type, google_review_url, primary_color, gate_threshold, thank_you_message, header_text, logo_url, color_theme, page_style, custom_bg } = req.body;
+  db.prepare('UPDATE locations SET business_name=?,business_type=?,google_review_url=?,primary_color=?,gate_threshold=?,thank_you_message=?,header_text=?,logo_url=?,color_theme=?,page_style=?,custom_bg=? WHERE id=? AND user_id=?')
+    .run(business_name,business_type||'',google_review_url,primary_color||'#2563eb',parseInt(gate_threshold)||4,thank_you_message||'Thank you!',header_text||'',logo_url||'',color_theme||'blue',page_style||'professional',custom_bg||'',req.params.id,user.id);
   res.redirect('/dashboard');
 });
 
@@ -626,15 +660,26 @@ app.get('/r/:slug', (req, res) => {
   const themeColors = { blue: '#2563eb', green: '#16a34a', purple: '#7c3aed', orange: '#ea580c' };
   const c = themeColors[loc.color_theme] || loc.primary_color || '#2563eb';
   const themeBg = { blue: 'linear-gradient(135deg,#eff6ff,#f8fafc)', green: 'linear-gradient(135deg,#f0fdf4,#f8fafc)', purple: 'linear-gradient(135deg,#f5f3ff,#f8fafc)', orange: 'linear-gradient(135deg,#fff7ed,#f8fafc)' };
-  const bg = themeBg[loc.color_theme] || themeBg.blue;
+  const pageStyle = loc.page_style || 'professional';
+  const customBg = loc.custom_bg || '';
+  let bg;
+  if (pageStyle === 'minimal') bg = '#f8fafc';
+  else if (pageStyle === 'premium' && customBg) bg = customBg.startsWith('http') ? `url(${customBg}) center/cover no-repeat fixed` : customBg;
+  else bg = themeBg[loc.color_theme] || themeBg.blue;
   const headerText = loc.header_text || 'How was your experience?';
-  const logoHtml = loc.logo_url ? `<img src="${esc(loc.logo_url)}" alt="${esc(loc.business_name)}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid ${c}20">` : '';
+  const showLogo = pageStyle !== 'minimal';
+  const showBizType = pageStyle !== 'minimal';
+  const showBranding = pageStyle !== 'minimal';
+  const logoHtml = (showLogo && loc.logo_url) ? `<img src="${esc(loc.logo_url)}" alt="${esc(loc.business_name)}" style="width:${pageStyle==='premium'?'96':'80'}px;height:${pageStyle==='premium'?'96':'80'}px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid ${c}20">` : '';
+  const cardShadow = pageStyle === 'premium' ? '0 8px 40px rgba(0,0,0,.15)' : '0 4px 24px rgba(0,0,0,.08)';
+  const cardRadius = pageStyle === 'minimal' ? '12px' : '20px';
+  const cardPadding = pageStyle === 'minimal' ? '32px 24px' : '40px 28px';
   res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Review ${esc(loc.business_name)}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${bg};min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:16px}
-.rc{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:420px;width:100%;padding:40px 28px;text-align:center}
-.bn{font-size:24px;font-weight:700;margin-bottom:8px;color:#1e293b;word-wrap:break-word}.bt{font-size:14px;color:#94a3b8;margin-bottom:32px}
+.rc{background:${pageStyle==='premium'?'rgba(255,255,255,.95)':'#fff'};border-radius:${cardRadius};box-shadow:${cardShadow};max-width:420px;width:100%;padding:${cardPadding};text-align:center;${pageStyle==='premium'?'backdrop-filter:blur(10px);':''}}
+.bn{font-size:${pageStyle==='premium'?'28':'24'}px;font-weight:700;margin-bottom:8px;color:#1e293b;word-wrap:break-word}.bt{font-size:14px;color:#94a3b8;margin-bottom:32px}
 .prompt{font-size:18px;color:#475569;margin-bottom:24px}
 .stars{display:flex;justify-content:center;gap:8px;margin-bottom:32px;-webkit-tap-highlight-color:transparent}
 .star{font-size:48px;cursor:pointer;transition:transform .15s;user-select:none;filter:grayscale(1) opacity(.3);-webkit-tap-highlight-color:transparent}
@@ -650,8 +695,8 @@ app.get('/r/:slug', (req, res) => {
 @media(max-width:360px){.star{font-size:36px}}
 </style></head><body>
 <div class="rc">
-<div id="s1">${logoHtml}<div class="bn">${esc(loc.business_name)}</div>
-${loc.business_type?`<div class="bt">${esc(loc.business_type)}</div>`:''}
+<div id="s1">${logoHtml}${showBranding?`<div class="bn">${esc(loc.business_name)}</div>`:''}
+${showBizType&&loc.business_type?`<div class="bt">${esc(loc.business_type)}</div>`:''}
 <div class="prompt">${esc(headerText)}</div>
 <div class="stars" id="stars">${[1,2,3,4,5].map(i=>`<div class="star" data-r="${i}" onclick="sel(${i})">⭐</div>`).join('')}</div></div>
 <div id="s2" class="ff">
@@ -802,8 +847,15 @@ body{background:#f8fafc}.onb-wrap{max-width:560px;margin:40px auto;padding:0 20p
 <div class="onb-step active" id="step0">
 <h2>1. Your Business Name</h2>
 <p class="step-desc">What's the name customers know you by?</p>
-<div class="form-group"><input type="text" id="ob-name" placeholder="e.g. Joe's Coffee Shop" value="${esc(user.business_name||'')}" style="font-size:18px;padding:14px 18px;text-align:center"></div>
-<div class="form-group"><label>Business Type</label><select id="ob-type" style="text-align:center">${['Restaurant','Salon/Spa','Dental Office','Medical Practice','Auto Shop','Real Estate','Legal Services','Home Services','Retail Store','Fitness/Gym','Other'].map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+<div class="form-group" style="position:relative">
+<input type="text" id="ob-name" placeholder="e.g. Joe's Coffee Shop" value="${esc(user.business_name||'')}" style="font-size:18px;padding:14px 18px;text-align:center" oninput="onNameInput(this.value)" autocomplete="off">
+<div id="name-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:10;margin-top:4px;max-height:280px;overflow-y:auto"></div>
+</div>
+<div class="form-group"><label>Business Type</label><select id="ob-type" style="text-align:center" onchange="showIndustryPreview(this.value)">${['Restaurant','Salon/Spa','Dental Office','Medical Practice','Auto Shop','Real Estate','Legal Services','Home Services','Retail Store','Fitness/Gym','Other'].map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+<div id="industry-preview" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:16px;display:none">
+<div style="font-size:13px;color:#16a34a;font-weight:600;margin-bottom:8px">✨ Pre-filled template for your industry:</div>
+<div id="industry-sms" style="font-size:13px;color:#475569;background:#fff;padding:10px;border-radius:8px;border:1px solid #e2e8f0"></div>
+</div>
 <button class="btn btn-primary onb-next" onclick="goStep(1)">Continue →</button>
 </div>
 
@@ -868,6 +920,37 @@ async function createLocation(){
   }catch(e){document.getElementById('ob-final').innerHTML='<div class="alert alert-error">Something went wrong</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>'}
 }
 function goStepUI(n){document.querySelectorAll('.onb-step').forEach(s=>s.classList.remove('active'));document.getElementById('step'+n).classList.add('active');for(let i=0;i<4;i++){const d=document.getElementById('dot'+i);d.className='step-dot'+(i<n?' done':i===n?' active':'')}}
+
+// Industry autocomplete
+const industries = ${JSON.stringify(Object.entries(INDUSTRY_TEMPLATES).map(([k,v])=>({name:k,icon:v.icon,sms:v.sms})))};
+let dropdownTimeout;
+function onNameInput(val) {
+  clearTimeout(dropdownTimeout);
+  const dd = document.getElementById('name-dropdown');
+  if (!val.trim()) { dd.style.display='none'; return; }
+  dropdownTimeout = setTimeout(() => {
+    dd.innerHTML = industries.map(ind =>
+      '<div style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f1f5f9;transition:background .15s" onmouseover="this.style.background=\\'#f8fafc\\'" onmouseout="this.style.background=\\'#fff\\'" onclick="selectIndustry(\\''+ind.name+'\\',\\''+val.trim()+'\\')">'+
+      '<span style="font-size:24px">'+ind.icon+'</span><div><div style="font-weight:600;font-size:14px">'+val.trim()+' <span style="color:#94a3b8;font-weight:400">— '+ind.name+'</span></div></div></div>'
+    ).join('');
+    dd.style.display = 'block';
+  }, 200);
+}
+function selectIndustry(type, name) {
+  document.getElementById('ob-type').value = type;
+  document.getElementById('name-dropdown').style.display = 'none';
+  showIndustryPreview(type);
+}
+function showIndustryPreview(type) {
+  const ind = industries.find(i => i.name === type);
+  const preview = document.getElementById('industry-preview');
+  if (ind) {
+    const name = document.getElementById('ob-name').value || 'Your Business';
+    document.getElementById('industry-sms').textContent = ind.sms.replace(/{name}/g, name).replace(/{link}/g, 'alpha.abapture.ai/r/...');
+    preview.style.display = 'block';
+  } else { preview.style.display = 'none'; }
+}
+document.addEventListener('click', function(e) { if (!e.target.closest('#ob-name') && !e.target.closest('#name-dropdown')) document.getElementById('name-dropdown').style.display='none'; });
 </script></body></html>`);
 });
 
@@ -963,6 +1046,210 @@ app.get('/templates', requireAuth, (req, res) => {
   });
 
   res.send(dashLayout(user, `<div style="max-width:700px;margin:0 auto">${html}</div>`));
+});
+
+// ===== INDUSTRY TEMPLATES API =====
+app.get('/api/industry-templates', (req, res) => {
+  res.json(INDUSTRY_TEMPLATES);
+});
+
+// ===== GET MORE REVIEWS (Integration Guides) =====
+app.get('/guides', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(user.id);
+  const bname = loc ? loc.business_name : (user.business_name || 'Your Business');
+  const rlink = loc ? `${BASE_URL}/r/${loc.slug}` : `${BASE_URL}/r/your-link`;
+  const qrLink = loc ? `/locations/${loc.id}/qr` : '#';
+
+  res.send(dashLayout(user, `<div style="max-width:800px;margin:0 auto">
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+<h1 style="font-size:28px">🚀 Get More Reviews</h1></div>
+<p style="color:#64748b;margin-bottom:32px">Proven strategies to collect more 5-star reviews. Each guide takes 5 minutes or less to implement.</p>
+
+<div class="card" style="border-left:4px solid #2563eb">
+<div style="display:flex;align-items:flex-start;gap:16px">
+<div style="font-size:40px">🧾</div>
+<div style="flex:1">
+<h3 style="font-size:18px;margin-bottom:8px">1. Add QR Code to Receipts</h3>
+<p style="color:#64748b;margin-bottom:16px">Print your QR code on receipts so every customer sees it at checkout. This is the #1 way local businesses collect reviews.</p>
+<div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0">
+<h4 style="font-size:14px;color:#2563eb;margin-bottom:12px">📋 STEP-BY-STEP</h4>
+<ol style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li><a href="${qrLink}" style="color:#2563eb">Download your QR code</a> as PNG</li>
+<li>Open your receipt template in your POS system (Square, Toast, Clover, etc.)</li>
+<li>Add the QR code image to the bottom of your receipt</li>
+<li>Add text: <em>"Scan to leave us a review ⭐"</em></li>
+<li>Save and print a test receipt to verify</li>
+</ol>
+<div style="margin-top:12px;padding:12px;background:#eff6ff;border-radius:8px;font-size:13px;color:#2563eb">💡 <strong>Pro tip:</strong> Add "Scan for a chance to win [prize]" to boost scan rates by 3x</div>
+</div>
+</div></div></div>
+
+<div class="card" style="border-left:4px solid #16a34a">
+<div style="display:flex;align-items:flex-start;gap:16px">
+<div style="font-size:40px">💬</div>
+<div style="flex:1">
+<h3 style="font-size:18px;margin-bottom:8px">2. Send After Appointments (SMS)</h3>
+<p style="color:#64748b;margin-bottom:16px">Text customers within 1 hour of their visit. Timing is everything — the sooner you ask, the more likely they'll respond.</p>
+<div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0">
+<h4 style="font-size:14px;color:#16a34a;margin-bottom:12px">📋 STEP-BY-STEP</h4>
+<ol style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Copy this SMS template:</li>
+</ol>
+<div style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:16px;margin:8px 0 12px;font-size:14px;color:#1e293b">
+Hi! Thanks for visiting <strong>${esc(bname)}</strong>. We'd love your feedback — takes 30 seconds: <strong>${esc(rlink)}</strong>
+</div>
+<ol start="2" style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Send within 1 hour of the customer's visit</li>
+<li>Use your phone, or set up auto-texts with your booking system</li>
+<li>For bulk: use services like Twilio, SimpleTexting, or your CRM</li>
+</ol>
+<button onclick="navigator.clipboard.writeText('Hi! Thanks for visiting ${esc(bname)}. We\\'d love your feedback — takes 30 seconds: ${esc(rlink)}');this.textContent='✓ Copied!';setTimeout(()=>this.textContent='Copy SMS Template',2000)" class="btn btn-primary btn-sm" style="margin-top:12px">Copy SMS Template</button>
+<div style="margin-top:12px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:13px;color:#16a34a">💡 <strong>Pro tip:</strong> Texts sent within 30 minutes of a visit get 4x more responses than emails</div>
+</div>
+</div></div></div>
+
+<div class="card" style="border-left:4px solid #7c3aed">
+<div style="display:flex;align-items:flex-start;gap:16px">
+<div style="font-size:40px">✉️</div>
+<div style="flex:1">
+<h3 style="font-size:18px;margin-bottom:8px">3. Add Link to Email Signature</h3>
+<p style="color:#64748b;margin-bottom:16px">Every email you send becomes a review request. Set it once and forget it — reviews come in on autopilot.</p>
+<div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0">
+<h4 style="font-size:14px;color:#7c3aed;margin-bottom:12px">📋 STEP-BY-STEP</h4>
+<ol style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Open your email app settings → Signature</li>
+<li>Add this line to your signature:</li>
+</ol>
+<div style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:16px;margin:8px 0 12px;font-size:14px;color:#1e293b">
+⭐ Love ${esc(bname)}? <a href="${esc(rlink)}" style="color:#2563eb">Leave us a review!</a>
+</div>
+<ol start="3" style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Save your signature</li>
+<li>Every email you send now asks for reviews!</li>
+</ol>
+<button onclick="navigator.clipboard.writeText('⭐ Love ${esc(bname)}? Leave us a review: ${esc(rlink)}');this.textContent='✓ Copied!';setTimeout(()=>this.textContent='Copy Signature Text',2000)" class="btn btn-primary btn-sm" style="margin-top:12px">Copy Signature Text</button>
+<div style="margin-top:12px;padding:12px;background:#f5f3ff;border-radius:8px;font-size:13px;color:#7c3aed">💡 <strong>Pro tip:</strong> Add it to every team member's signature for maximum impact</div>
+</div>
+</div></div></div>
+
+<div class="card" style="border-left:4px solid #ea580c">
+<div style="display:flex;align-items:flex-start;gap:16px">
+<div style="font-size:40px">📱</div>
+<div style="flex:1">
+<h3 style="font-size:18px;margin-bottom:8px">4. Post on Social Media</h3>
+<p style="color:#64748b;margin-bottom:16px">Share your review link on Facebook, Instagram, and other social channels to reach customers who already follow you.</p>
+<div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0">
+<h4 style="font-size:14px;color:#ea580c;margin-bottom:12px">📋 STEP-BY-STEP</h4>
+<ol style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Copy this post template:</li>
+</ol>
+<div style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:16px;margin:8px 0 12px;font-size:14px;color:#1e293b">
+We love hearing from our customers! ⭐<br>If you've visited <strong>${esc(bname)}</strong> recently, we'd appreciate your honest feedback. It takes just 30 seconds!<br><br>👉 ${esc(rlink)}<br><br>Thank you for supporting local business! 🙏
+</div>
+<ol start="2" style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
+<li>Post on Facebook, Instagram bio link, Twitter/X, Nextdoor</li>
+<li>Pin the post so new visitors see it first</li>
+<li>Add your review link to your Instagram bio and Facebook page</li>
+</ol>
+<button onclick="navigator.clipboard.writeText('We love hearing from our customers! ⭐ If you\\'ve visited ${esc(bname)} recently, we\\'d appreciate your honest feedback. It takes just 30 seconds!\\n\\n${esc(rlink)}\\n\\nThank you for supporting local business! 🙏');this.textContent='✓ Copied!';setTimeout(()=>this.textContent='Copy Social Post',2000)" class="btn btn-primary btn-sm" style="margin-top:12px">Copy Social Post</button>
+<div style="margin-top:12px;padding:12px;background:#fff7ed;border-radius:8px;font-size:13px;color:#ea580c">💡 <strong>Pro tip:</strong> Post monthly for a steady stream of new reviews</div>
+</div>
+</div></div></div>
+
+<div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:2px solid #2563eb;text-align:center;padding:32px">
+<div style="font-size:48px;margin-bottom:12px">🎯</div>
+<h3 style="font-size:20px;margin-bottom:8px">The Golden Rule of Reviews</h3>
+<p style="color:#475569;font-size:16px;max-width:500px;margin:0 auto 16px"><strong>Ask every customer, every time.</strong> Businesses that ask consistently get 5-10x more reviews than those that don't.</p>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+<a href="/templates" class="btn btn-primary btn-sm">📋 View All Templates</a>
+${loc?`<a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">📱 Get QR Code</a>`:''}
+</div>
+</div>
+</div>`));
+});
+
+// ===== REVIEW PAGE STYLE PREVIEW =====
+app.get('/locations/:id/style', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const loc = db.prepare('SELECT * FROM locations WHERE id=? AND user_id=?').get(req.params.id, user.id);
+  if (!loc) return res.redirect('/dashboard');
+  const url = `${BASE_URL}/r/${loc.slug}`;
+  
+  res.send(dashLayout(user, `<div style="max-width:900px;margin:0 auto">
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+<h1 style="font-size:28px">🎨 Review Page Style — ${esc(loc.business_name)}</h1></div>
+<p style="color:#64748b;margin-bottom:24px">Choose how your review page looks to customers. Click to preview, then save.</p>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px" id="style-grid">
+${['minimal','professional','premium'].map(s => {
+  const active = (loc.page_style||'professional') === s;
+  const labels = {minimal:'Minimal',professional:'Professional',premium:'Premium'};
+  const descs = {minimal:'Clean & simple. Just stars and feedback.',professional:'Business info, logo, and branding.',premium:'Full branding with custom background.'};
+  const icons = {minimal:'⚡',professional:'🏢',premium:'👑'};
+  return `<div class="card" onclick="selectStyle('${s}')" id="style-${s}" style="cursor:pointer;text-align:center;padding:24px;border:2px solid ${active?'#2563eb':'#e2e8f0'};transition:all .2s">
+<div style="font-size:36px;margin-bottom:8px">${icons[s]}</div>
+<h3 style="font-size:18px;margin-bottom:4px">${labels[s]}</h3>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px">${descs[s]}</p>
+${s==='premium'?'<span class="badge badge-growth" style="font-size:11px">STARTER+</span>':''}
+${active?'<div style="color:#2563eb;font-weight:600;font-size:13px;margin-top:8px">✓ Active</div>':''}
+</div>`;
+}).join('')}
+</div>
+
+${(loc.page_style||'professional')==='premium'?`
+<div class="card" id="premium-options" style="margin-bottom:16px">
+<h3 style="margin-bottom:12px">Premium Options</h3>
+<div class="form-group"><label>Custom Background (CSS)</label>
+<input type="text" id="custom-bg" value="${esc(loc.custom_bg||'')}" placeholder="e.g. linear-gradient(135deg, #667eea, #764ba2) or image URL">
+<div class="form-hint">Use a gradient or paste an image URL. Leave blank for default.</div></div>
+</div>`:'<div id="premium-options" style="display:none"></div>'}
+
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+<button onclick="saveStyle()" class="btn btn-primary" id="save-btn">Save Style</button>
+<a href="/r/${loc.slug}" target="_blank" class="btn btn-secondary">Preview Live Page ↗</a>
+<span id="save-msg" style="color:#16a34a;font-size:14px;display:none">✓ Saved!</span>
+</div>
+
+<div style="margin-top:32px">
+<h3 style="margin-bottom:16px">Preview</h3>
+<div style="border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;background:#f8fafc">
+<iframe src="/r/${loc.slug}" style="width:100%;height:600px;border:none" id="preview-frame"></iframe>
+</div></div>
+</div>
+<script>
+let currentStyle = '${loc.page_style||'professional'}';
+function selectStyle(s) {
+  currentStyle = s;
+  document.querySelectorAll('#style-grid .card').forEach(c => c.style.borderColor = '#e2e8f0');
+  document.getElementById('style-'+s).style.borderColor = '#2563eb';
+  document.getElementById('premium-options').style.display = s==='premium' ? 'block' : 'none';
+}
+async function saveStyle() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const body = { page_style: currentStyle };
+  if (currentStyle === 'premium') body.custom_bg = document.getElementById('custom-bg')?.value || '';
+  const r = await fetch('/locations/${loc.id}/style', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  btn.disabled = false; btn.textContent = 'Save Style';
+  if (r.ok) {
+    document.getElementById('save-msg').style.display = 'inline';
+    document.getElementById('preview-frame').src = '/r/${loc.slug}?t='+Date.now();
+    setTimeout(() => document.getElementById('save-msg').style.display = 'none', 3000);
+  }
+}
+</script>`));
+});
+
+app.post('/locations/:id/style', requireAuth, (req, res) => {
+  const user = getUser(req);
+  const { page_style, custom_bg } = req.body;
+  const validStyles = ['minimal','professional','premium'];
+  if (!validStyles.includes(page_style)) return res.status(400).json({error:'Invalid style'});
+  // Premium requires starter+ plan
+  if (page_style === 'premium' && user.plan === 'free') return res.status(403).json({error:'Upgrade to Starter or Growth to use Premium style'});
+  db.prepare('UPDATE locations SET page_style=?, custom_bg=? WHERE id=? AND user_id=?').run(page_style, custom_bg||'', req.params.id, user.id);
+  res.json({success:true});
 });
 
 // ===== 404 PAGE =====
