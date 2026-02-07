@@ -12,7 +12,7 @@ const app = express();
 const PORT = 3101;
 const BASE_URL = process.env.BASE_URL || 'https://alpha.abapture.ai';
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51SX7HWFTXd6exu80Oim9f4yI8YzjnKhhm9xHydcJ6HX0SMkubtjZ9fxmAtPTpL79Ta4IzvopfTN62waalNZNDD9i00a7ajZ0fN');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -102,8 +102,42 @@ footer{padding:40px 0;text-align:center;color:#94a3b8;font-size:14px;border-top:
 <h1>Get More <span>5-Star Reviews</span><br>Without the Hassle</h1>
 <p>ReviewFlow helps local businesses collect Google reviews on autopilot. Smart review routing sends happy customers to Google — and catches unhappy ones before they go public.</p>
 <a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Start Collecting Reviews — Free</a>
+<a href="#demo" class="btn btn-secondary" style="padding:16px 32px;font-size:17px;margin-left:12px">Try Live Demo ↓</a>
 <p style="font-size:14px;color:#94a3b8;margin-top:12px">No credit card required · Set up in 2 minutes</p>
 </div></section>
+
+<section id="demo" style="padding:60px 0;background:#fff"><div class="container" style="max-width:900px;margin:0 auto">
+<h2 style="text-align:center;font-size:36px;margin-bottom:8px">Try It Right Now</h2>
+<p style="text-align:center;color:#64748b;font-size:18px;margin-bottom:32px">Enter your business name to see what your review page would look like — no signup needed.</p>
+<div style="display:flex;gap:12px;max-width:500px;margin:0 auto 32px;flex-wrap:wrap">
+<input type="text" id="demo-name" placeholder="e.g. Joe's Coffee Shop" style="flex:1;padding:14px 18px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;min-width:200px" oninput="updateDemo()">
+<input type="color" id="demo-color" value="#2563eb" style="width:52px;height:52px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;padding:4px" oninput="updateDemo()">
+</div>
+<div style="display:flex;justify-content:center"><div id="demo-preview" style="background:#f8fafc;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.12);max-width:420px;width:100%;padding:40px 32px;text-align:center;transition:all .3s">
+<div id="dp-name" style="font-size:24px;font-weight:700;color:#1e293b;margin-bottom:8px">Your Business Name</div>
+<div style="font-size:18px;color:#475569;margin-bottom:24px">How was your experience?</div>
+<div style="display:flex;justify-content:center;gap:8px;margin-bottom:24px" id="demo-stars">
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(1)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(2)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(3)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(4)">⭐</span>
+<span class="dstar" style="font-size:48px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s" onclick="demoPick(5)">⭐</span>
+</div>
+<div id="demo-result" style="display:none"></div>
+<div style="margin-top:20px;font-size:12px;color:#cbd5e1">Powered by <span style="color:#94a3b8">ReviewFlow</span></div>
+</div></div>
+<div style="text-align:center;margin-top:32px">
+<a href="#" onclick="var n=document.getElementById('demo-name').value||'Your Business';window.open('/demo/'+encodeURIComponent(n)+'?color='+encodeURIComponent(document.getElementById('demo-color').value),'_blank');return false" class="btn btn-secondary" style="padding:14px 28px;font-size:16px;margin-right:12px">Open Full Preview ↗</a>
+<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Create Your Review Page Free →</a></div>
+</div>
+<script>
+function updateDemo(){var n=document.getElementById('demo-name').value||'Your Business Name';document.getElementById('dp-name').textContent=n;resetDemo()}
+function resetDemo(){document.querySelectorAll('.dstar').forEach(s=>{s.style.filter='grayscale(1) opacity(.3)';s.style.transform='scale(1)'});document.getElementById('demo-result').style.display='none'}
+function demoPick(r){var stars=document.querySelectorAll('.dstar');stars.forEach((s,i)=>{s.style.filter=i<r?'none':'grayscale(1) opacity(.3)';s.style.transform=i<r?'scale(1.15)':'scale(1)'});
+var c=document.getElementById('demo-color').value;var dr=document.getElementById('demo-result');dr.style.display='block';
+if(r>=4){dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-bottom:12px">🎉</div><p style="font-size:16px;color:#475569">Great! The customer gets redirected to <strong>Google Reviews</strong>.</p><button style="margin-top:12px;padding:12px 24px;background:'+c+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:default">Leave a Google Review →</button></div>'}
+else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-bottom:12px">🛡️</div><p style="font-size:16px;color:#475569">This feedback stays <strong>private</strong> — it never reaches Google.</p><div style="margin-top:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-align:left"><div style="font-size:13px;color:#94a3b8;margin-bottom:4px">Private feedback form appears here</div><div style="background:#f1f5f9;border-radius:4px;height:32px;margin-bottom:8px"></div><div style="background:#f1f5f9;border-radius:4px;height:60px"></div></div></div>'}}
+</script></section>
 
 <section id="features" class="features"><div class="container">
 <h2 style="text-align:center;font-size:36px;margin-bottom:40px">Everything You Need to Own Your Reviews</h2>
@@ -412,6 +446,57 @@ app.get('/locations/:id/share', requireAuth, (req, res) => {
 <textarea id="ebody" rows="6" style="background:#f8fafc" readonly>${esc(emailBody)}</textarea>
 <button onclick="navigator.clipboard.writeText(document.getElementById('subj').value+'\\n\\n'+document.getElementById('ebody').value);this.textContent='Copied!'" class="btn btn-secondary btn-sm" style="margin-top:8px">Copy Email</button></div>
 <div class="card"><h3 style="margin-bottom:12px">🖨️ Print Materials</h3><a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">Get QR Code →</a></div></div>`));
+});
+
+// ===== DEMO PREVIEW PAGE =====
+app.get('/demo/:name', (req, res) => {
+  const name = decodeURIComponent(req.params.name).slice(0,100);
+  const c = req.query.color || '#2563eb';
+  const th = 4;
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Demo — ${esc(name)} | ReviewFlow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.demo-bar{position:fixed;top:0;left:0;right:0;background:#1e293b;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;z-index:99;font-size:14px}
+.demo-bar a{color:#fff;background:#2563eb;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
+.rc{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:420px;width:100%;padding:40px 32px;text-align:center;margin-top:40px}
+.bn{font-size:24px;font-weight:700;margin-bottom:8px;color:#1e293b}
+.prompt{font-size:18px;color:#475569;margin-bottom:24px}
+.stars{display:flex;justify-content:center;gap:8px;margin-bottom:32px}
+.star{font-size:48px;cursor:pointer;transition:transform .15s;user-select:none;filter:grayscale(1) opacity(.3)}
+.star:hover,.star.active{filter:none;transform:scale(1.2)}
+.ff{display:none;margin-top:24px;text-align:left}.ff.show{display:block}
+.ff label{font-weight:600;font-size:14px;margin-bottom:6px;display:block;color:#374151}
+.ff input,.ff textarea{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:16px}
+.sb{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;background:${esc(c)};color:#fff}
+.result{display:none;text-align:center}.result.show{display:block}
+.pw{margin-top:32px;font-size:12px;color:#cbd5e1}
+</style></head><body>
+<div class="demo-bar"><span>🔍 This is a demo preview — <strong>${esc(name)}</strong></span><a href="/signup">Create Your Own →</a></div>
+<div class="rc">
+<div id="s1"><div class="bn">${esc(name)}</div>
+<div class="prompt">How was your experience?</div>
+<div class="stars">${[1,2,3,4,5].map(i=>`<div class="star" data-r="${i}" onclick="sel(${i})">⭐</div>`).join('')}</div></div>
+<div id="s2" class="ff">
+<div id="fp" style="display:none;text-align:center;margin-bottom:24px"><div style="font-size:48px;margin-bottom:12px">🎉</div>
+<p style="font-size:18px;color:#475569">We're thrilled! Would you share your experience on Google?</p></div>
+<div id="fn" style="display:none"><p style="font-size:16px;color:#475569;margin-bottom:20px;text-align:center">We're sorry. Please tell us how we can improve:</p>
+<label>Your Name (optional)</label><input type="text" placeholder="Your name">
+<label>What could we do better?</label><textarea rows="4" placeholder="Tell us about your experience..."></textarea></div>
+<button class="sb" id="sbtn" onclick="demoSubmit()">Submit</button></div>
+<div id="s3" class="result"><div style="font-size:64px;margin-bottom:16px" id="ri">🙏</div><div style="font-size:18px;color:#475569" id="rm"></div>
+<div style="margin-top:24px"><a href="/signup" style="display:inline-block;padding:12px 24px;background:${esc(c)};color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Get This For Your Business →</a></div></div>
+<div class="pw">Powered by <a href="/" style="color:#94a3b8;text-decoration:none">ReviewFlow</a></div></div>
+<script>
+let rating=0;
+function sel(r){rating=r;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
+setTimeout(()=>{document.getElementById('s1').style.display='none';const f=document.getElementById('s2');f.classList.add('show');
+if(r>=${th}){document.getElementById('fp').style.display='block';document.getElementById('fn').style.display='none';document.getElementById('sbtn').textContent='Leave a Google Review →'}
+else{document.getElementById('fp').style.display='none';document.getElementById('fn').style.display='block';document.getElementById('sbtn').textContent='Send Private Feedback'}},300)}
+function demoSubmit(){document.getElementById('s2').style.display='none';var res=document.getElementById('s3');res.classList.add('show');
+if(rating>=${th}){document.getElementById('ri').textContent='🌟';document.getElementById('rm').innerHTML='In production, the customer would be redirected to <strong>Google Reviews</strong> right now.'}
+else{document.getElementById('ri').textContent='🛡️';document.getElementById('rm').innerHTML='This negative feedback stays <strong>private</strong> — it never reaches Google.'}}
+</script></body></html>`);
 });
 
 // ===== PUBLIC REVIEW PAGE =====
