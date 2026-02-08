@@ -109,3 +109,73 @@ ReviewFlow Team
 - `POST /api/stripe/create-checkout` — accepts `{ plan, email }`, creates Stripe customer + checkout session, returns `{ url }` pointing to `checkout.stripe.com`
 
 **Verified:** Both endpoints tested with curl, returning correct responses. Service restarted and running.
+
+## 2026-02-08 — 5 min sprint (04:09–04:20 AM PST)
+
+### 1) Prospects sourced (goplaces) — Los Angeles area (10)
+Collected name / rating / phone / website / place_id and attempted quick homepage email scrape.
+
+| # | Business | Rating | Phone | Website | Email found |
+|---|----------|--------|-------|---------|------------|
+| 1 | Bolt Barbers | 4.1 | (213) 232-4715 | http://www.boltbarbers.com/ | safari@boltbarbers.com |
+| 2 | 2Shy Mobile Mechanic (mobile) | 4.2 | (213) 768-7737 | *(none in Places)* | *(none)* |
+| 3 | La Auto Center | 4.3 | (213) 747-2847 | http://www.laautocenter.biz/ | *(homepage had a sentry-next.wixpress.com address; ignoring as non-contact)* |
+| 4 | Rooter Guard (Sun Valley) | 4.3 | (818) 351-1810 | https://www.rooterguard.com/ | *(none on homepage)* |
+| 5 | Polished Nail Bar in DTLA | 4.3 | (213) 266-0077 | https://polisheddtla.glossgenius.com/booking-flow | polishednailbar.dtla@gmail.com |
+| 6 | California Family Dental Center | 4.4 | (323) 582-4474 | http://www.cfdgdental.com/ | hpfd2711@yahoo.com |
+| 7 | Rooter Man Plumbing of Los Angeles | 4.5 | (323) 400-6362 | https://www.rootermanla.com/plumber-los-angeles-ca-plumbing-repair | *(none on landing page)* |
+| 8 | Total Care Dental + Ortho | 4.5 | (323) 751-5600 | https://tcdortho.com/ | info@tcdortho.com |
+| 9 | Downtown Dental | 4.6 | (213) 620-5777 | http://www.downtowndentalla.com/ | office@downtowndentalla.com |
+| 10 | Normandie Dental Clinic (listing via weence) | 4.6 | (844) 213-9508 | https://weence.com/medical/doctors/los-angeles/normandie-dental-clinic/ | *(none)* |
+
+Raw TSV: /tmp/alpha_prospects.tsv (on host)
+
+### 2) Resend domain verification — DNS work
+Goal: unblock cold email sending from @abapture.ai.
+
+- Used browser-task.py --cdp on Namecheap Advanced DNS for **abapture.ai**.
+- Verified these records already existed:
+  - TXT `resend._domainkey` (DKIM)
+  - MX `send` → `feedback-smtp.eu-west-1.amazonses.com` (prio 10)
+  - TXT `send` → `v=spf1 include:amazonses.com ~all`
+- **Added missing DMARC record:** TXT `_dmarc` → `v=DMARC1; p=none;`
+
+Next: go to Resend dashboard → Domains → abapture.ai → “Verify” (DNS propagation may take minutes-hours).
+
+### 3) Cold email drafts (ready once Resend verifies)
+Draft 1 (barber/salon):
+Subject: Quick idea to boost your Google reviews for [Business Name]
+
+Hi [Name],
+
+I found [Business Name] on Google Maps and noticed you’re already doing well (rating ~[X]). Most shops I talk to still lose a lot of potential 5-star reviews because happy clients don’t follow through.
+
+I built ReviewFlow (https://alpha.abapture.ai): it creates a simple QR + link that routes happy customers to leave a Google review, and sends unhappy feedback to you privately.
+
+If you want, I can set up a free review page for you in ~2 minutes and send the QR you can print at the front desk.
+
+Worth a quick try?
+— ReviewFlow
+
+Draft 2 (dentist):
+Subject: Getting more 5★ Google reviews (without awkward asks)
+
+Hi [Name],
+
+Patients rely heavily on Google reviews when choosing a dental practice. ReviewFlow (https://alpha.abapture.ai) gives you a clean link/QR that:
+- nudges happy patients to leave a Google review
+- routes unhappy feedback privately so you can resolve issues before they go public
+
+Happy to set up a free page for [Clinic Name] and send the QR.
+
+Best,
+ReviewFlow
+
+### 4) Blockers
+- Resend verification still pending until DNS propagates + Resend re-check.
+- Reddit posting blocked by new account karma (still needs warming up).
+
+### Immediate next actions
+1) Check Resend domain status + verify.
+2) Send 10 tailored emails (starting with those with real inboxes: safari@boltbarbers.com, polishednailbar.dtla@gmail.com, hpfd2711@yahoo.com, info@tcdortho.com, office@downtowndentalla.com).
+3) For the others: use their website contact forms if no email is exposed.
