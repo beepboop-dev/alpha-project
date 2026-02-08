@@ -54,3 +54,25 @@ Smart review routing for local businesses. Happy customers (4-5 stars) get redir
 - [x] Core product flow end-to-end complete
 - [x] Polish round: mobile responsive, testimonials, onboarding wizard, email capture, footer, terms/privacy
 - [x] Final quality round: dashboard metrics, review page customization (header/logo/themes), email notifications, templates page, branded 404
+- [x] Conversion optimization: industry autocomplete onboarding, quick actions dashboard, 3 review page styles (minimal/professional/premium), integration guides page
+- [x] SEO blog with 5 articles (deployed)
+- [x] Sitemap.xml + robots.txt
+- [x] Lead magnet page (/free-guide)
+- [x] Fixed critical bug: site was serving ProposalDash instead of ReviewFlow (public/index.html override)
+- [x] Fixed better-sqlite3 segfault (Node version mismatch)
+- [x] Fixed file permissions for DB
+- [x] Cleaned up old ProposalDash files from src/
+- [x] Added Schema.org structured data (SoftwareApplication)
+- [x] Added announcement banner on landing page
+- [x] Secured .env from GitHub (gitignore)
+- [ ] Submit to directories (Product Hunt, Indie Hackers, BetaList)
+- [x] Reddit post attempt on r/SideProject — auto-removed (account too new, 0 karma) (2026-02-08)
+- [ ] Cold outreach to local businesses (template ready, need to find targets)
+- [ ] Build Reddit karma before re-posting (need ~50+ karma)
+- [ ] Google Search Console setup
+- [x] Updated banner to "First Month FREE" promo (2026-02-07)
+- [x] Fixed remaining ProposalDash references in stripe.js, auth.js, schema.js
+- [x] Drafted Reddit posts (r/smallbusiness, r/localmarketing), Indie Hackers launch post
+- [x] Drafted cold outreach templates for 10 business types
+- [x] Stripe live keys active, checkout route updated ($29/mo Starter)
+- [x] Proposal payment integration: create proposals with line items, public view page at /p/:token, Stripe checkout "Pay Invoice" button, payment status tracking (2026-02-07)

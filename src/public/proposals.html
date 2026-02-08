@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewFlow — Professional Proposal Templates</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0a0a0a;--surface:#141414;--surface2:#1a1a1a;--border:#262626;--text:#fafafa;--text2:#a1a1aa;--accent:#3b82f6;--accent2:#2563eb;--green:#10b981}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 24px}
+    nav{padding:20px 0;border-bottom:1px solid var(--border)}
+    nav .container{display:flex;justify-content:space-between;align-items:center}
+    .logo{font-size:20px;font-weight:700}.logo span{color:var(--accent)}
+    .nav-links{display:flex;align-items:center;gap:24px}
+    .nav-links a{color:var(--text2);font-size:15px}.nav-links a:hover{color:var(--text)}
+    .nav-links a.active{color:var(--accent)}
+    h1{font-size:48px;font-weight:800;text-align:center;margin-bottom:12px;letter-spacing:-1.5px}
+    h1 span{background:linear-gradient(135deg,var(--accent),#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .page-sub{text-align:center;color:var(--text2);font-size:18px;margin-bottom:48px}
+    .templates-section{padding:60px 0}
+    .template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
+    .tpl-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s}
+    .tpl-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 40px rgba(59,130,246,.15)}
+    .tpl-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+    .tpl-header{padding:24px 24px 16px;display:flex;align-items:center;gap:14px}
+    .tpl-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+    .tpl-header h3{font-size:18px;font-weight:700}
+    .tpl-header p{font-size:13px;color:var(--text2);margin-top:2px}
+    .tpl-tags{padding:0 24px 16px;display:flex;gap:8px;flex-wrap:wrap}
+    .tpl-tag{background:rgba(59,130,246,.1);color:var(--accent);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+    .tpl-sections{padding:0 24px 20px}
+    .tpl-section-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--text2)}
+    .tpl-section-item::before{content:'✓';color:var(--green);font-weight:700;font-size:12px}
+    .tpl-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:between;align-items:center}
+    .tpl-footer button{width:100%;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;transition:background .15s}
+    .tpl-footer button:hover{background:var(--accent2)}
+
+    /* Editor */
+    .editor-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto}
+    .editor-overlay.active{display:block}
+    .editor-bar{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+    .editor-bar h2{font-size:18px;font-weight:700}
+    .editor-actions{display:flex;gap:10px}
+    .editor-actions button{padding:8px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+    .btn-back{background:var(--surface2);color:var(--text);border:1px solid var(--border)!important}
+    .btn-back:hover{border-color:var(--text2)!important}
+    .btn-export{background:var(--accent);color:#fff}
+    .btn-export:hover{background:var(--accent2)}
+    .btn-copy{background:var(--green);color:#fff}
+    .btn-copy:hover{background:#059669}
+    .editor-content{max-width:800px;margin:40px auto;padding:0 24px 80px}
+    .editor-content h1{font-size:32px;text-align:left;margin-bottom:24px;-webkit-text-fill-color:var(--text);background:none}
+    .section-block{margin-bottom:32px}
+    .section-block h2{font-size:20px;font-weight:700;margin-bottom:12px;color:var(--accent);display:flex;align-items:center;gap:8px}
+    .section-block h2 .num{background:var(--accent);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+    .editable{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-size:15px;color:var(--text);line-height:1.7;min-height:80px;outline:none;transition:border-color .2s;white-space:pre-wrap}
+    .editable:focus{border-color:var(--accent)}
+    .editable:empty::before{content:attr(data-placeholder);color:var(--text2)}
+
+    footer{border-top:1px solid var(--border);padding:40px 0;text-align:center;color:var(--text2);font-size:14px}
+    @media(max-width:700px){h1{font-size:32px}.template-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav><div class="container"><a href="/" class="logo">⚡ Snap<span>OG</span> <small style="font-size:12px;color:var(--text2);font-weight:400">+ ReviewFlow</small></a><div class="nav-links"><a href="/">OG Images</a><a href="/proposals.html" class="active">Proposals</a><a href="/#pricing">Pricing</a></div></div></nav>
+
+  <section class="templates-section"><div class="container">
+    <h1>Proposal <span>Templates</span></h1>
+    <p class="page-sub">Professional, pre-filled templates — customize and export in minutes.</p>
+    <div class="template-grid" id="tpl-grid"></div>
+  </div></section>
+
+  <div class="editor-overlay" id="editor">
+    <div class="editor-bar">
+      <h2 id="editor-title">Editing Template</h2>
+      <div class="editor-actions">
+        <button class="btn-back" onclick="closeEditor()">← Back</button>
+        <button class="btn-copy" onclick="copyMarkdown()">📋 Copy</button>
+        <button class="btn-export" onclick="exportHTML()">⬇ Export HTML</button>
+      </div>
+    </div>
+    <div class="editor-content" id="editor-body"></div>
+  </div>
+
+  <footer><div class="container"><p>© 2026 SnapOG + ReviewFlow · <a href="/">Home</a></p></div></footer>
+
+<script>
+const TEMPLATES = [
+  {
+    id: 'consulting',
+    name: 'Consulting Proposal',
+    icon: '💼',
+    iconBg: '#1e3a5f',
+    desc: 'Management & strategy consulting engagements',
+    tags: ['Strategy', 'Advisory', 'B2B'],
+    sectionNames: ['Executive Summary','Problem Statement','Proposed Approach','Deliverables & Timeline','Team & Qualifications','Investment & Pricing','Terms & Next Steps'],
+    sections: [
+      `[Your Firm Name] is pleased to present this proposal to [Client Name] for strategic consulting services. Our engagement will focus on [key objective], with the goal of delivering measurable improvements in [target metric] within [timeframe].\n\nWe bring 15+ years of experience in [industry] and have helped organizations like [Reference Client] achieve [specific result].`,
+      `[Client Name] is currently facing challenges in:\n\n• Market positioning amid increasing competitive pressure\n• Operational efficiency gaps resulting in [X]% margin erosion\n• Organizational alignment between [Department A] and [Department B]\n\nWithout intervention, these issues are projected to cost approximately $[X] over the next [timeframe].`,
+      `Our engagement follows a proven three-phase methodology:\n\nPhase 1 — Discovery & Diagnosis (Weeks 1-3)\nStakeholder interviews, data analysis, and current-state assessment.\n\nPhase 2 — Strategy Development (Weeks 4-7)\nWorkshop-driven strategy formulation with executive alignment sessions.\n\nPhase 3 — Implementation Roadmap (Weeks 8-10)\nDetailed action plan with KPIs, owners, and milestone tracking.`,
+      `Key deliverables include:\n\n✓ Current State Assessment Report\n✓ Competitive Landscape Analysis\n✓ Strategic Recommendations Deck (Executive & Board versions)\n✓ Implementation Roadmap with 30/60/90-day milestones\n✓ Monthly Progress Reviews (3 months post-engagement)\n\nTimeline: 10 weeks from kickoff to final deliverable.`,
+      `Project Lead: [Name], [Title] — [X] years in [domain]\nSenior Analyst: [Name] — Expertise in [area]\nAssociate: [Name] — Specializing in [area]\n\nOur firm has completed 200+ engagements across [industries]. Notable clients include [Client A], [Client B], and [Client C].`,
+      `Option A — Full Engagement: $[XX,000]\nIncludes all three phases, deliverables, and 3-month follow-up.\n\nOption B — Discovery Only: $[X,000]\nPhase 1 only with assessment report and recommendations outline.\n\nPayment: 50% upon signing, 25% at Phase 2 start, 25% upon completion.`,
+      `This proposal is valid for 30 days from the date of issue.\n\nTo proceed, please sign below and return with the initial payment. We will schedule a kickoff meeting within 5 business days.\n\nPrepared by: [Your Name]\nDate: [Date]\nSignature: ___________________________\n\nAccepted by: [Client Name]\nDate: _______________\nSignature: ___________________________`
+    ]
+  },
+  {
+    id: 'freelance',
+    name: 'Freelance Project Proposal',
+    icon: '🎯',
+    iconBg: '#3b1f5e',
+    desc: 'Web design, development & creative projects',
+    tags: ['Web Dev', 'Design', 'Freelance'],
+    sectionNames: ['Introduction','Project Understanding','Scope of Work','Timeline & Milestones','Pricing','About Me','Agreement'],
+    sections: [
+      `Hi [Client Name],\n\nThank you for considering me for your [project type] project. I'm excited about the opportunity to help [Company Name] achieve [goal].\n\nThis proposal outlines my understanding of your needs, the work I'll deliver, and the investment required.`,
+      `Based on our conversation on [date], here's what I understand:\n\n• You need a [website/app/design] that [primary goal]\n• Target audience: [describe]\n• Key requirements: [list 3-4 main requirements]\n• Must integrate with: [tools/platforms]\n• Launch target: [date]`,
+      `I will deliver the following:\n\n1. Research & Strategy\n   — Competitor analysis, user persona definition, sitemap/wireframes\n\n2. Design\n   — [X] page designs with 2 revision rounds per page\n   — Mobile-responsive layouts\n   — Style guide with colors, typography, and components\n\n3. Development\n   — Clean, semantic HTML/CSS/JS (or [framework])\n   — CMS integration ([WordPress/Webflow/etc.])\n   — Contact form, analytics, SEO basics\n\n4. Launch Support\n   — Deployment to your hosting\n   — 2 weeks of bug fixes post-launch`,
+      `Week 1-2: Research, wireframes, and content strategy\nWeek 3-4: Visual design (homepage + 2 key pages)\nWeek 5: Revisions and remaining page designs\nWeek 6-7: Development\nWeek 8: Testing, QA, and launch\n\nTotal: ~8 weeks from kickoff\n\nNote: Timeline assumes feedback within 2 business days at each review point.`,
+      `Project Total: $[X,000]\n\nPayment Schedule:\n• 30% deposit to begin ($[X]) — due upon signing\n• 40% at design approval ($[X]) — before development starts\n• 30% at launch ($[X]) — before final files transfer\n\nThis quote includes everything in the Scope of Work. Additional features or pages can be added at $[X]/hour.`,
+      `I'm [Your Name], a [title] with [X] years of experience building [type of work] for clients like [Client A], [Client B], and [Client C].\n\nPortfolio: [URL]\nLinkedIn: [URL]\n\nI specialize in [key skill] and pride myself on clear communication, meeting deadlines, and delivering work that drives results.`,
+      `This proposal is valid for 14 days.\n\nBy signing below, both parties agree to the scope, timeline, and pricing outlined above. Changes to scope will be handled via a change order with adjusted pricing.\n\nFreelancer: [Your Name] — Date: ___________\nClient: [Client Name] — Date: ___________`
+    ]
+  },
+  {
+    id: 'agency',
+    name: 'Agency Services Proposal',
+    icon: '🏢',
+    iconBg: '#1a3c34',
+    desc: 'Marketing, branding & digital agency retainers',
+    tags: ['Marketing', 'Branding', 'Retainer'],
+    sectionNames: ['Cover Letter','Situation Analysis','Strategy & Approach','Service Packages','Case Studies','Investment','Terms & Conditions'],
+    sections: [
+      `Dear [Client Name],\n\nOn behalf of [Agency Name], we're thrilled to present our proposal for [Client Company]'s [marketing/branding/digital] needs.\n\nWe've spent [X] years helping brands like yours cut through the noise. After reviewing your current positioning and goals, we're confident we can deliver [key outcome].\n\nThis document outlines our recommended strategy, services, and investment.`,
+      `Current State:\n• Website traffic: [X] monthly visitors (source: [tool])\n• Social following: [X] across [platforms]\n• Brand awareness: [assessment]\n• Key gap: [primary challenge]\n\nMarket Context:\n• [Industry] is projected to grow [X]% by [year]\n• Competitors [A, B, C] are investing heavily in [channel]\n• Opportunity: [specific untapped opportunity]\n\nYour audience of [target demographic] is most active on [channels] and responds to [content types].`,
+      `We recommend a three-pillar approach:\n\n🎯 Pillar 1: Brand Positioning\nRefine messaging, visual identity, and value proposition to stand out in [market].\n\n📱 Pillar 2: Digital Presence\nRedesign website for conversion, optimize SEO, and build a content engine.\n\n📣 Pillar 3: Growth Marketing\nPaid social + search campaigns, email nurture sequences, and influencer partnerships.\n\nEach pillar includes clear KPIs so we can measure and optimize monthly.`,
+      `🥉 Starter — $[X,000]/month\n• Social media management (3 platforms, 12 posts/month)\n• Monthly performance report\n• Quarterly strategy review\n\n🥈 Growth — $[X,000]/month\n• Everything in Starter, plus:\n• SEO & content marketing (4 blog posts/month)\n• Email marketing (2 campaigns/month)\n• Paid ad management (up to $[X]k spend)\n\n🥇 Premium — $[X,000]/month\n• Everything in Growth, plus:\n• Brand strategy & creative direction\n• Video content production (2/month)\n• Dedicated account manager\n• Weekly check-in calls`,
+      `Case Study 1: [Brand Name]\nChallenge: [problem]\nSolution: [what we did]\nResult: [X]% increase in [metric] in [timeframe]\n\nCase Study 2: [Brand Name]\nChallenge: [problem]\nSolution: [what we did]\nResult: [X]% increase in [metric] in [timeframe]\n\n"[Testimonial quote from client]" — [Name], [Title] at [Company]`,
+      `Recommended Package: Growth — $[X,000]/month\nMinimum commitment: 6 months\nOne-time onboarding fee: $[X,000]\n\nTotal Year 1 Investment: $[XX,000]\n\nPayment: Monthly invoice, net 15. Onboarding fee due upon signing.\n\nROI Projection: Based on similar engagements, we expect [X]% improvement in [key metric] within 6 months.`,
+      `• Contract term: 6 months minimum, month-to-month thereafter\n• Cancellation: 30 days written notice after initial term\n• Scope changes: Addressed via written change order\n• IP ownership: All deliverables become client property upon payment\n• Confidentiality: Both parties agree to NDA terms (attached separately)\n\nThis proposal is valid for 21 days.\n\nPrepared by: [Your Name], [Title]\n[Agency Name] · [Phone] · [Email]`
+    ]
+  },
+  {
+    id: 'saas',
+    name: 'SaaS Implementation Proposal',
+    icon: '☁️',
+    iconBg: '#1e293b',
+    desc: 'Software platform onboarding & enterprise deals',
+    tags: ['Software', 'Enterprise', 'SaaS'],
+    sectionNames: ['Executive Overview','Current Challenges','Solution Overview','Implementation Plan','Support & SLA','Pricing & Licensing','Sign-Off'],
+    sections: [
+      `[Product Name] is a [category] platform that helps [target users] achieve [outcome]. This proposal outlines how [Product Name] will address [Client Company]'s specific requirements for [use case].\n\nKey highlights:\n• [X]% reduction in [pain point] based on customer benchmarks\n• Full deployment in [X] weeks\n• Dedicated Customer Success Manager throughout onboarding\n• Enterprise-grade security (SOC 2, GDPR compliant)`,
+      `Based on our discovery call on [date], [Client Company] faces:\n\n1. Manual processes consuming [X] hours/week across [department]\n2. Data scattered across [X] disconnected tools\n3. Limited visibility into [metric] for leadership\n4. Scaling challenges as team grows from [X] to [X] people\n\nEstimated cost of inaction: $[X]/year in lost productivity and missed opportunities.`,
+      `[Product Name] addresses each challenge:\n\n✅ Automated Workflows — Replace [X] manual steps with configurable automation\n✅ Unified Dashboard — Single source of truth for [data type]\n✅ Real-time Analytics — Custom reports and alerts for [metrics]\n✅ Scalable Architecture — Handles [X]+ users with role-based access\n✅ Integrations — Native connectors for [Tool A], [Tool B], [Tool C]\n\nSecurity: End-to-end encryption, SSO/SAML, audit logs, 99.9% uptime SLA.`,
+      `Week 1-2: Kickoff & Configuration\n• Dedicated onboarding call\n• Account setup, SSO integration, data migration plan\n\nWeek 3-4: Data Migration & Integrations\n• Import historical data from [current system]\n• Configure API integrations with [tools]\n\nWeek 5-6: Training & UAT\n• Admin training (2 sessions)\n• End-user training (self-paced + live)\n• User acceptance testing\n\nWeek 7-8: Go-Live & Optimization\n• Production launch\n• Hypercare support (dedicated Slack channel)\n• 30-day review and optimization`,
+      `Included Support:\n• Email & chat support: Mon-Fri 9am-6pm [timezone]\n• Response times: Critical < 1 hour, High < 4 hours, Normal < 1 business day\n• 99.9% uptime SLA with credits for downtime\n\nCustomer Success:\n• Named CSM for first 12 months\n• Quarterly business reviews\n• Access to product roadmap sessions\n\nEnterprise Support Add-on ($[X]/month):\n• 24/7 phone support\n• Dedicated technical account manager\n• Custom SLA terms`,
+      `Annual Subscription:\n• [X] seats × $[XX]/seat/month = $[X,000]/year\n• Implementation fee (one-time): $[X,000]\n• Enterprise Support (optional): $[X,000]/year\n\nTotal Year 1: $[XX,000]\nYear 2+ (renewal): $[X,000]/year\n\nVolume discounts available for 100+ seats.\n\nPayment: Annual upfront (10% discount) or quarterly billing.`,
+      `We're confident [Product Name] will transform how [Client Company] handles [use case]. To move forward:\n\n1. Sign this proposal\n2. We'll schedule kickoff within 48 hours\n3. Your team is live in [X] weeks\n\nQuestions? Contact [Name] at [email] or [phone].\n\nProposed by: [Your Name], [Title]\nDate: [Date]\n\nAccepted by: ___________________________\nTitle: ___________________________\nDate: ___________________________`
+    ]
+  },
+  {
+    id: 'construction',
+    name: 'Construction Project Proposal',
+    icon: '🏗️',
+    iconBg: '#4a3728',
+    desc: 'Renovation, building & contractor bids',
+    tags: ['Construction', 'Renovation', 'Contractor'],
+    sectionNames: ['Project Overview','Site Assessment','Scope of Work','Materials & Specifications','Project Schedule','Cost Estimate','Terms & Warranty'],
+    sections: [
+      `[Company Name] is pleased to submit this proposal for the [project type] project at [address/location] for [Client Name].\n\nProject: [Project Name]\nLocation: [Full Address]\nEstimated Duration: [X] weeks\nProposed Start Date: [Date]\nLicense #: [Number]\nInsured: Yes — General Liability & Workers' Comp\n\nThis proposal covers all labor, materials, and equipment necessary to complete the work described below.`,
+      `Site visit conducted on [date] by [name/title]. Findings:\n\n• Existing structure: [description — age, condition, type]\n• Lot size: [X] sq ft, zoning: [type]\n• Current issues identified:\n  — [Issue 1, e.g., foundation settling on east wall]\n  — [Issue 2, e.g., outdated electrical panel (100A)]\n  — [Issue 3, e.g., water damage in basement NW corner]\n\n• Permits required: [Building, Electrical, Plumbing — as applicable]\n• Utility coordination needed: [Yes/No — details]\n\nPhotos and detailed assessment attached as Appendix A.`,
+      `The following work is included in this proposal:\n\n1. Demolition & Preparation\n   • Remove existing [items]\n   • Haul away debris (dumpster included)\n   • Protect adjacent areas and landscaping\n\n2. Structural Work\n   • [Framing/foundation/roofing details]\n   • [Specific structural modifications]\n\n3. Mechanical Systems\n   • Electrical: [upgrade/new circuits/panel upgrade]\n   • Plumbing: [new fixtures/rerouting/etc.]\n   • HVAC: [new system/ductwork/etc.]\n\n4. Finishing\n   • [Flooring type and area]\n   • [Wall finishes — drywall, paint, tile]\n   • [Fixtures, hardware, trim]\n   • [Landscaping/exterior restoration]\n\n5. Final Inspection & Cleanup\n   • All permit inspections\n   • Professional cleaning\n   • Client walkthrough and punch list`,
+      `Key materials specified:\n\n• Framing: [Lumber grade/type]\n• Roofing: [Material — e.g., 30-year architectural shingles]\n• Insulation: [Type and R-value]\n• Windows: [Brand/model, energy rating]\n• Flooring: [Type — e.g., 3/4" red oak hardwood]\n• Paint: [Brand, finish — e.g., Benjamin Moore, eggshell]\n• Fixtures: [Allowance or specific selections]\n\nAll materials meet or exceed local building code requirements.\n\nClient may select alternatives within the specified allowances. Upgrades beyond allowances will be quoted separately.`,
+      `Phase 1 — Permits & Prep (Week 1-2)\n  Permit applications, material ordering, site prep\n\nPhase 2 — Demolition (Week 3)\n  Selective demo, debris removal\n\nPhase 3 — Rough Construction (Week 4-7)\n  Framing, roofing, rough mechanical (electrical/plumbing/HVAC)\n\nPhase 4 — Inspections (Week 8)\n  Rough inspections for all trades\n\nPhase 5 — Finishing (Week 9-12)\n  Drywall, painting, flooring, fixtures, trim\n\nPhase 6 — Final (Week 13-14)\n  Final inspections, punch list, cleanup, handover\n\n⚠ Weather delays, permit delays, or client-requested changes may extend the schedule.`,
+      `Labor                    $[XX,000]\nMaterials                $[XX,000]\nPermits & Fees           $[X,000]\nEquipment Rental         $[X,000]\nSubcontractors           $[XX,000]\nProject Management       $[X,000]\nContingency (10%)        $[X,000]\n————————————————————\nTotal Project Cost       $[XXX,000]\n\nPayment Schedule:\n• 10% deposit upon contract signing\n• 25% at completion of rough framing\n• 25% at completion of rough mechanical\n• 25% at drywall completion\n• 15% upon final completion and walkthrough\n\nChange orders priced at Time & Materials + 15% markup.`,
+      `Terms:\n• This proposal is valid for 30 days\n• Work performed per local building codes and permit requirements\n• Client responsible for temporary housing if applicable\n• Work hours: Mon-Fri 7:00 AM - 5:00 PM (Sat by arrangement)\n• Client access to site with 24-hour notice during construction\n\nWarranty:\n• Workmanship: 2-year warranty on all labor\n• Materials: Per manufacturer warranty (transferred to client)\n• Structural: 10-year warranty on structural work\n\nContractor: [Company Name]\nBy: ___________________________ Date: ___________\nLicense #: [Number]\n\nClient: [Client Name]\nBy: ___________________________ Date: ___________`
+    ]
+  }
+];
+
+function renderTemplates() {
+  const grid = document.getElementById('tpl-grid');
+  grid.innerHTML = TEMPLATES.map(t => `
+    <div class="tpl-card" onclick="openEditor('${t.id}')">
+      <div class="tpl-header">
+        <div class="tpl-icon" style="background:${t.iconBg}">${t.icon}</div>
+        <div><h3>${t.name}</h3><p>${t.desc}</p></div>
+      </div>
+      <div class="tpl-tags">${t.tags.map(tag=>`<span class="tpl-tag">${tag}</span>`).join('')}</div>
+      <div class="tpl-sections">${t.sectionNames.slice(0,4).map(s=>`<div class="tpl-section-item">${s}</div>`).join('')}${t.sectionNames.length>4?`<div class="tpl-section-item">+${t.sectionNames.length-4} more sections</div>`:''}</div>
+      <div class="tpl-footer"><button>Use This Template →</button></div>
+    </div>
+  `).join('');
+}
+
+function openEditor(id) {
+  const t = TEMPLATES.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('editor-title').textContent = t.icon + ' ' + t.name;
+  const body = document.getElementById('editor-body');
+  body.innerHTML = `<h1 contenteditable="true" style="cursor:text">${t.name}</h1>` +
+    t.sectionNames.map((name,i) => `
+      <div class="section-block">
+        <h2><span class="num">${i+1}</span> ${name}</h2>
+        <div class="editable" contenteditable="true" data-placeholder="Enter ${name.toLowerCase()} here...">${t.sections[i]}</div>
+      </div>
+    `).join('');
+  document.getElementById('editor').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditor() {
+  document.getElementById('editor').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function getEditorText() {
+  const title = document.querySelector('#editor-body h1')?.textContent || 'Proposal';
+  const blocks = document.querySelectorAll('#editor-body .section-block');
+  let md = '# ' + title + '\n\n';
+  blocks.forEach(b => {
+    const h = b.querySelector('h2')?.textContent?.trim() || '';
+    const content = b.querySelector('.editable')?.innerText || '';
+    md += '## ' + h + '\n\n' + content + '\n\n';
+  });
+  return md;
+}
+
+function copyMarkdown() {
+  navigator.clipboard.writeText(getEditorText()).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  });
+}
+
+function exportHTML() {
+  const title = document.querySelector('#editor-body h1')?.textContent || 'Proposal';
+  const blocks = document.querySelectorAll('#editor-body .section-block');
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.8}h1{font-size:28px;border-bottom:2px solid #333;padding-bottom:12px}h2{font-size:20px;color:#2563eb;margin-top:32px}p{white-space:pre-wrap}</style></head><body><h1>${title}</h1>`;
+  blocks.forEach(b => {
+    const h = b.querySelector('h2')?.textContent?.trim() || '';
+    const content = b.querySelector('.editable')?.innerText || '';
+    html += `<h2>${h}</h2><p>${content.replace(/</g,'&lt;')}</p>`;
+  });
+  html += '</body></html>';
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = title.replace(/[^a-zA-Z0-9]/g,'_') + '.html';
+  a.click();
+}
+
+renderTemplates();
+</script>
+</body>
+</html>
