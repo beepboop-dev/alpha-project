@@ -1,0 +1,110 @@
+module.exports = function(app, css, footer, esc, BASE_URL) {
+
+app.get("/tools/google-review-link-generator", (req, res) => {
+  var jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Free Google Review Link Generator",
+    "description": "Generate a direct Google review link for your business. Free tool, no signup required.",
+    "url": BASE_URL + "/tools/google-review-link-generator",
+    "applicationCategory": "BusinessApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  });
+
+  var html = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">"
+    + "<title>Free Google Review Link Generator — Get Your Direct Review URL | ReviewFlow</title>"
+    + "<meta name=\"description\" content=\"Generate a direct Google review link for your business in seconds. Free tool — no signup required. Share via QR code, SMS, or email to get more reviews.\">"
+    + "<link rel=\"canonical\" href=\"" + BASE_URL + "/tools/google-review-link-generator\">"
+    + "<meta property=\"og:title\" content=\"Free Google Review Link Generator\">"
+    + "<meta property=\"og:description\" content=\"Get a direct Google review link for your business. Free, no signup required.\">"
+    + "<meta property=\"og:type\" content=\"website\">"
+    + "<script type=\"application/ld+json\">" + jsonLd + "</script>"
+    + css()
+    + "<style>"
+    + ".tool-wrap{max-width:720px;margin:0 auto;padding:48px 24px}"
+    + ".tool-box{background:#fff;border:2px solid #e2e8f0;border-radius:16px;padding:32px;margin:32px 0}"
+    + ".tool-input{width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:16px;box-sizing:border-box}"
+    + ".tool-input:focus{outline:none;border-color:#2563eb}"
+    + ".tool-btn{background:#2563eb;color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;width:100%}"
+    + ".tool-btn:hover{background:#1d4ed8}"
+    + ".result-box{background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin-top:20px;display:none}"
+    + ".result-link{word-break:break-all;font-family:monospace;font-size:14px;background:#fff;padding:12px;border-radius:8px;border:1px solid #e2e8f0;margin:12px 0}"
+    + ".copy-btn{background:#22c55e;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}"
+    + ".copy-btn:hover{background:#16a34a}"
+    + ".step{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start}"
+    + ".step-num{background:#2563eb;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}"
+    + ".step-content h3{margin:0 0 4px;font-size:16px}.step-content p{margin:0;color:#64748b;font-size:14px}"
+    + ".tool-cta{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:2px solid #2563eb;border-radius:16px;padding:32px;text-align:center;margin:40px 0}"
+    + "</style></head><body>"
+    + "<nav class=\"nav\"><div class=\"container nav-inner\"><a href=\"/\" class=\"nav-brand\">⭐ ReviewFlow</a>"
+    + "<div class=\"nav-links\"><a href=\"/blog\">Blog</a><a href=\"/tools/google-review-link-generator\">Free Tool</a><a href=\"/#pricing\">Pricing</a><a href=\"/login\">Log In</a><a href=\"/signup\" class=\"btn btn-primary btn-sm\">Start Free</a></div></div></nav>"
+    + "<div class=\"tool-wrap\">"
+    + "<h1 style=\"font-size:36px;margin-bottom:8px\">Free Google Review Link Generator</h1>"
+    + "<p style=\"color:#64748b;font-size:18px;margin-bottom:32px\">Get a direct link to your Google review page. Share it with customers to collect more 5-star reviews.</p>"
+    + "<div class=\"tool-box\">"
+    + "<h2 style=\"font-size:20px;margin-bottom:16px\">Find Your Business</h2>"
+    + "<input type=\"text\" id=\"bizSearch\" class=\"tool-input\" placeholder=\"Search your business name (e.g. Joe&#39;s Pizza Los Angeles)\">"
+    + "<button class=\"tool-btn\" onclick=\"searchBiz()\">&#x1F50D; Search Google Places</button>"
+    + "<div id=\"searchResults\" class=\"search-results\"></div>"
+    + "<div id=\"resultBox\" class=\"result-box\">"
+    + "<h3 style=\"margin-bottom:8px\">&#x2705; Your Google Review Link</h3>"
+    + "<p style=\"color:#64748b;font-size:14px\">Share this link with your customers:</p>"
+    + "<div id=\"reviewLink\" class=\"result-link\"></div>"
+    + "<div style=\"display:flex;gap:12px;flex-wrap:wrap\">"
+    + "<button class=\"copy-btn\" onclick=\"copyLink()\">&#x1F4CB; Copy Link</button>"
+    + "<button class=\"copy-btn\" style=\"background:#2563eb\" onclick=\"window.location.href=/signup\">&#x1F680; Create Review Page + QR Code</button>"
+    + "</div>"
+    + "<p style=\"color:#64748b;font-size:13px;margin-top:16px\"><strong>Want more?</strong> ReviewFlow creates a branded review page with smart routing, QR codes, and analytics — <a href=\"/signup\" style=\"color:#2563eb\">free to start</a>.</p>"
+    + "</div></div>"
+    + "<h2 style=\"margin-top:40px;margin-bottom:24px\">How to Find Your Google Review Link Manually</h2>"
+    + "<div class=\"step\"><div class=\"step-num\">1</div><div class=\"step-content\"><h3>Search for your business on Google Maps</h3><p>Go to <a href=\"https://maps.google.com\" style=\"color:#2563eb\">maps.google.com</a> and search for your business name.</p></div></div>"
+    + "<div class=\"step\"><div class=\"step-num\">2</div><div class=\"step-content\"><h3>Find your Place ID</h3><p>Click your business listing. The Place ID is in the URL or use Google Place ID Finder.</p></div></div>"
+    + "<div class=\"step\"><div class=\"step-num\">3</div><div class=\"step-content\"><h3>Build your review link</h3><p>Your direct review URL format: <code>https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID</code></p></div></div>"
+    + "<div class=\"step\"><div class=\"step-num\">4</div><div class=\"step-content\"><h3>Or use the generator above</h3><p>Our tool does all this automatically — just search and click.</p></div></div>"
+    + "<h2 style=\"margin-top:40px;margin-bottom:16px\">Why You Need a Direct Google Review Link</h2>"
+    + "<ul style=\"color:#475569;line-height:2\">"
+    + "<li><strong>3x more reviews</strong> — Remove friction and customers actually follow through</li>"
+    + "<li><strong>Higher star rating</strong> — Direct links catch customers while the experience is fresh</li>"
+    + "<li><strong>Better local SEO</strong> — More reviews = higher Google Maps ranking</li>"
+    + "<li><strong>Easy to share</strong> — Works in SMS, email, QR codes, and social media</li></ul>"
+    + "<h2 style=\"margin-top:40px;margin-bottom:16px\">Where to Share Your Google Review Link</h2>"
+    + "<ul style=\"color:#475569;line-height:2\">"
+    + "<li>&#x1F4F1; <strong>Text messages</strong> after a service visit</li>"
+    + "<li>&#x1F4E7; <strong>Follow-up emails</strong> to recent customers</li>"
+    + "<li>&#x1F4CB; <strong>QR codes</strong> at your register, tables, or waiting room</li>"
+    + "<li>&#x1F4B3; <strong>Business cards</strong> and receipts</li>"
+    + "<li>&#x1F310; <strong>Your website</strong> and social media profiles</li></ul>"
+    + "<div class=\"tool-cta\">"
+    + "<h3 style=\"font-size:22px;margin-bottom:8px\">Go Beyond a Simple Link</h3>"
+    + "<p style=\"color:#64748b;margin-bottom:16px\">ReviewFlow creates a branded review page that routes happy customers to Google and catches unhappy feedback privately. Plus QR codes and analytics.</p>"
+    + "<a href=\"/signup\" class=\"btn btn-primary\" style=\"padding:14px 36px;font-size:16px\">Create Your Review Page — Free</a>"
+    + "<p style=\"color:#64748b;font-size:13px;margin-top:8px\">No credit card required · 2-minute setup</p>"
+    + "</div></div>"
+    + footer()
+    + "<script>"
+    + "async function searchBiz(){var q=document.getElementById(\"bizSearch\").value.trim();if(!q)return;var el=document.getElementById(\"searchResults\");el.innerHTML=\"<div style=\\\"text-align:center;padding:20px;color:#64748b\\\">Searching...</div>\";try{var res=await fetch(\"/api/places-search-public?q=\"+encodeURIComponent(q));var data=await res.json();if(data.error){el.innerHTML=\"<p style=\\\"color:#ef4444\\\">\"+data.error+\"</p>\";return;}if(!data.results||data.results.length===0){el.innerHTML=\"<p style=\\\"color:#64748b\\\">No businesses found. Try adding your city name.</p>\";return;}el.innerHTML=data.results.map(function(p){return\"<div style=\\\"background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer\\\" onclick=\\\"selectPlace(\"+JSON.stringify(p.place_id)+\",\"+JSON.stringify(p.name)+\")\\\">\"+\"<div style=\\\"font-weight:600;color:#1e293b\\\">\"+esc(p.name)+\"</div>\"+(p.formatted_address?\"<div style=\\\"color:#64748b;font-size:14px;margin-top:4px\\\">\"+esc(p.formatted_address)+\"</div>\":\"\")+(p.rating?\"<div style=\\\"color:#f59e0b;font-size:14px;margin-top:4px\\\">&#x2B50; \"+p.rating+\" (\"+p.user_ratings_total+\" reviews)</div>\":\"\")+(\"</div>\");}).join(\"\");}catch(e){el.innerHTML=\"<p style=\\\"color:#ef4444\\\">Search failed. Try again.</p>\";}}function esc(s){if(!s)return\"\";return s.replace(/&/g,\"&amp;\").replace(/</g,\"&lt;\").replace(/>/g,\"&gt;\");}function selectPlace(id,name){var link=\"https://search.google.com/local/writereview?placeid=\"+id;document.getElementById(\"reviewLink\").textContent=link;document.getElementById(\"resultBox\").style.display=\"block\";document.getElementById(\"searchResults\").innerHTML=\"<p style=\\\"color:#22c55e;font-weight:600\\\">Selected: \"+esc(name)+\"</p>\";}function copyLink(){var link=document.getElementById(\"reviewLink\").textContent;navigator.clipboard.writeText(link).then(function(){var b=document.querySelector(\".copy-btn\");b.textContent=\"Copied!\";setTimeout(function(){b.textContent=\"Copy Link\";},2000);});}document.getElementById(\"bizSearch\").addEventListener(\"keydown\",function(e){if(e.key===\"Enter\")searchBiz();});"
+    + "</script></body></html>";
+
+  res.send(html);
+});
+
+app.get("/api/places-search-public", async (req, res) => {
+  var q = (req.query.q || "").trim();
+  if (!q || q.length < 2) return res.json({ error: "Please enter a business name" });
+  try {
+    var apiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || "";
+    if (!apiKey) return res.json({ error: "Places search not configured. Use the manual method below." });
+    var url = "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" + encodeURIComponent(q) + "&type=establishment&key=" + apiKey;
+    var resp = await fetch(url);
+    var data = await resp.json();
+    if (data.status !== "OK" && data.status !== "ZERO_RESULTS") return res.json({ error: "Search unavailable right now." });
+    var results = (data.results || []).slice(0, 5).map(function(p) {
+      return { place_id: p.place_id, name: p.name, formatted_address: p.formatted_address, rating: p.rating, user_ratings_total: p.user_ratings_total };
+    });
+    res.json({ results: results });
+  } catch(e) {
+    res.json({ error: "Search failed. Try again." });
+  }
+});
+
+};

@@ -19,6 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.get("/health", (req, res) => res.json({status: "ok", product: "ReviewFlow", uptime: process.uptime(), timestamp: new Date().toISOString()}));
 app.use(session({ secret: 'reviewflow-k8x7m2p', resave: false, saveUninitialized: false, cookie: { maxAge: 30*24*60*60*1000 } }));
 
 const db = new Database(path.join(__dirname, 'reviewflow.db'));
@@ -99,7 +100,7 @@ label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#3741
 .footer-bottom{border-top:1px solid #334155;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px}
 .footer-bottom a{color:#94a3b8;text-decoration:none;margin-left:16px}.footer-bottom a:hover{color:#fff}
 @media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.nav-links{gap:12px}.footer-grid{grid-template-columns:1fr 1fr}.footer-bottom{flex-direction:column;text-align:center}}
-@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px;min-height:44px;display:inline-flex;align-items:center;padding:4px 8px}.btn-sm{padding:8px 14px;font-size:12px;min-height:44px}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px}.btn-sm{padding:6px 12px;font-size:12px}}
 </style>`;
 }
 
@@ -257,6 +258,48 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 </div>
 </div></section>
 
+
+<section id="faq" style="padding:80px 0;background:#f8fafc"><div class="container" style="max-width:800px;margin:0 auto">
+<h2 style="text-align:center;font-size:36px;margin-bottom:8px">Frequently Asked Questions</h2>
+<p style="text-align:center;color:#64748b;font-size:18px;margin-bottom:40px">Everything you need to know about ReviewFlow</p>
+<div style="display:flex;flex-direction:column;gap:16px">
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">How does ReviewFlow work?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">ReviewFlow creates a branded review page for your business. When customers visit your page (via QR code, link, or SMS), they rate their experience. Happy customers (4-5 stars) are redirected to your Google Reviews page. Unhappy customers (1-3 stars) see a private feedback form so you can address their concerns before they go public.</p>
+</details>
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">Is ReviewFlow free?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">Yes! Our free plan includes one location, a branded review page, QR code, and basic analytics. No credit card required, no time limit. Paid plans start at $29/month for businesses that need multiple locations, campaign tools, and advanced analytics.</p>
+</details>
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">How long does setup take?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">About 2 minutes. Sign up, paste your Google review link, customize your page colors, and you are ready to go. Your QR code is generated automatically.</p>
+</details>
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">Is review gating allowed by Google?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">ReviewFlow uses smart review routing, which asks customers to rate their experience first. We never prevent anyone from leaving a Google review. Happy customers are simply guided to Google, while unhappy customers get a private channel to share feedback directly with you.</p>
+</details>
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">What types of businesses use ReviewFlow?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">Any local business that depends on Google reviews: restaurants, dental offices, salons, auto shops, medical practices, real estate agents, law firms, home services, gyms, and retail stores. We have industry-specific templates for each.</p>
+</details>
+
+<details style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;cursor:pointer">
+<summary style="font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center">How is ReviewFlow different from Birdeye or Podium?<span style="color:#94a3b8;font-size:20px">+</span></summary>
+<p style="margin-top:12px;color:#475569;line-height:1.7">Birdeye and Podium are enterprise platforms starting at $249-299/month with annual contracts. ReviewFlow is built for small local businesses — free to start, $29/month for premium, no contracts, and setup takes 2 minutes instead of weeks.</p>
+</details>
+
+</div>
+</div></section>
+
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does ReviewFlow work?","acceptedAnswer":{"@type":"Answer","text":"ReviewFlow creates a branded review page for your business. When customers visit your page via QR code, link, or SMS, they rate their experience. Happy customers (4-5 stars) are redirected to your Google Reviews page. Unhappy customers (1-3 stars) see a private feedback form so you can address their concerns before they go public."}},{"@type":"Question","name":"Is ReviewFlow free?","acceptedAnswer":{"@type":"Answer","text":"Yes! Our free plan includes one location, a branded review page, QR code, and basic analytics. No credit card required, no time limit. Paid plans start at $29/month for businesses that need multiple locations, campaign tools, and advanced analytics."}},{"@type":"Question","name":"How long does setup take?","acceptedAnswer":{"@type":"Answer","text":"About 2 minutes. Sign up, paste your Google review link, customize your page colors, and you are ready to go. Your QR code is generated automatically."}},{"@type":"Question","name":"Is review gating allowed by Google?","acceptedAnswer":{"@type":"Answer","text":"ReviewFlow uses smart review routing, which asks customers to rate their experience first. We never prevent anyone from leaving a Google review. Happy customers are simply guided to Google, while unhappy customers get a private channel to share feedback directly with you."}},{"@type":"Question","name":"What types of businesses use ReviewFlow?","acceptedAnswer":{"@type":"Answer","text":"Any local business that depends on Google reviews: restaurants, dental offices, salons, auto shops, medical practices, real estate agents, law firms, home services, gyms, and retail stores. We have industry-specific templates for each."}},{"@type":"Question","name":"How is ReviewFlow different from Birdeye or Podium?","acceptedAnswer":{"@type":"Answer","text":"Birdeye and Podium are enterprise platforms starting at $249-299/month with annual contracts. ReviewFlow is built for small local businesses — free to start, $29/month for premium, no contracts, and setup takes 2 minutes instead of weeks."}}]}</script>
+
+
 <section class="cta"><div class="container">
 <h2>Every Day Without Reviews Is a Day You Lose Customers</h2>
 <p>Businesses with more reviews get more clicks, more calls, and more customers.</p>
@@ -270,7 +313,7 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <p id="captureMsg" style="font-size:14px;margin-top:8px;display:none"></p>
 </div>
 </div></section>
-<script>async function captureEmail(e){e.preventDefault();var btn=e.target.querySelector('button'),inp=document.getElementById('captureEmailInput');btn.disabled=true;btn.textContent='Sending...';try{const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:inp.value})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list!';inp.value='';inp.disabled=true;btn.textContent='✓ Subscribed';btn.style.background='#22c55e'}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong';btn.disabled=false;btn.textContent='Notify Me'}}catch(err){btn.disabled=false;btn.textContent='Notify Me'}}</script>
+<script>async function captureEmail(e){e.preventDefault();const em=document.getElementById('captureEmailInput').value;const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list! We\\'ll keep you posted.';document.getElementById('captureEmailInput').value=''}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong'}}</script>
 ${footer()}
 </body></html>`);
 });
@@ -846,7 +889,7 @@ ${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:1
 <ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Response templates</li><li>Dedicated support</li></ul>
 ${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a>'}</div>
 </div></div>
-<script>let _checkoutBusy=false;async function checkout(p){if(_checkoutBusy)return;_checkoutBusy=true;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=true;b.style.opacity='.6';b.textContent='Redirecting to checkout...'});try{const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else{alert('Error');_checkoutBusy=false;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=false;b.style.opacity='1';b.textContent='Upgrade'})}}catch(e){alert('Error');_checkoutBusy=false}}</script>
+<script>async function checkout(p){const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else alert('Error')}</script>
 </body></html>`);
 });
 
@@ -1574,6 +1617,12 @@ app.get('/sitemap.xml', (req, res) => {
     { loc: '/blog', priority: '0.8' },
     { loc: '/signup', priority: '0.9' },
     { loc: '/login', priority: '0.5' },
+    { loc: '/alternatives', priority: '0.8' },
+    { loc: '/for/restaurants', priority: '0.8' },
+    { loc: '/for/dentists', priority: '0.8' },
+    { loc: '/for/auto-shops', priority: '0.8' },
+    { loc: '/for/salons', priority: '0.8' },
+    { loc: '/for/real-estate', priority: '0.8' },
     ...BLOG_POSTS.map(p => ({ loc: '/blog/' + p.slug, priority: '0.7', lastmod: p.date }))
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => 
@@ -1797,6 +1846,137 @@ app.get('/api/response-templates', requireAuth, (req, res) => {
   res.json(templates);
 });
 
+app.get('/alternatives', (req, res) => {
+  const competitors = [
+    { name: 'BrightLocal', price: '$39/mo', pros: 'Comprehensive local SEO suite, rank tracking, citation building', cons: 'Expensive for small businesses, complex interface, overkill if you just need reviews', reviewflow: 'ReviewFlow focuses on one thing: getting you more Google reviews. No bloat, no learning curve. Free plan included.' },
+    { name: 'Podium', price: '$399/mo', pros: 'Full messaging platform, webchat, payments, reviews', cons: 'Extremely expensive, long contracts, way more than most small businesses need', reviewflow: 'ReviewFlow gives you the review collection part of Podium for free. No $399/month price tag, no annual contracts.' },
+    { name: 'Birdeye', price: '$299/mo', pros: 'Enterprise review management, multi-location, AI responses', cons: 'Enterprise pricing, complex onboarding, requires demo/sales call', reviewflow: 'Set up in 2 minutes, not 2 weeks. ReviewFlow is built for small businesses that want more reviews without enterprise complexity.' },
+    { name: 'Grade.us', price: '$110/mo', pros: 'White-label review funnels, drip campaigns', cons: 'Designed for agencies not businesses, dated interface, no free plan', reviewflow: 'ReviewFlow gives business owners direct control. No middleman, modern interface, and a free plan to start.' },
+    { name: 'NiceJob', price: '$75/mo', pros: 'Automated review invitations, social proof widgets', cons: 'Monthly cost adds up, limited customization on cheaper plans', reviewflow: "ReviewFlow's smart review gate does the same filtering \u2014 and the free plan includes unlimited reviews." },
+    { name: 'Google Review Link (DIY)', price: 'Free', pros: 'No cost, direct Google link', cons: 'No filtering \u2014 bad reviews go straight to Google, no analytics, no QR codes', reviewflow: 'ReviewFlow adds the critical layer: happy customers go to Google, unhappy ones come to you first. Still free.' },
+  ];
+
+  res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ReviewFlow Alternatives &amp; Comparisons \u2014 vs BrightLocal, Podium, Birdeye</title>
+<meta name="description" content="Compare ReviewFlow to BrightLocal, Podium, Birdeye, and other Google review management tools. See why small businesses choose ReviewFlow's free plan.">
+<meta property="og:title" content="ReviewFlow vs Competitors \u2014 Google Review Management Compared">
+<meta property="og:description" content="See how ReviewFlow compares to BrightLocal, Podium, Birdeye and more. Free review management for local businesses.">
+<meta property="og:url" content="https://alpha.abapture.ai/alternatives">
+<link rel="canonical" href="https://alpha.abapture.ai/alternatives">
+${css()}
+<style>
+.alt-hero{padding:60px 0 40px;text-align:center;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%)}
+.alt-hero h1{font-size:40px;font-weight:800;margin-bottom:16px}
+.alt-hero p{font-size:18px;color:#64748b;max-width:640px;margin:0 auto}
+.comp-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:32px;margin-bottom:24px}
+.comp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.comp-header h2{font-size:24px;font-weight:700;margin:0}
+.comp-price{background:#fef2f2;color:#dc2626;padding:6px 16px;border-radius:999px;font-size:14px;font-weight:600}
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.comp-section h3{font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.comp-section.pros h3{color:#16a34a}.comp-section.cons h3{color:#dc2626}
+.comp-section p{font-size:15px;color:#475569;line-height:1.6}
+.comp-verdict{background:#eff6ff;border-radius:12px;padding:20px;border-left:4px solid #2563eb}
+.comp-verdict h3{font-size:14px;font-weight:700;color:#2563eb;margin-bottom:6px}
+.comp-verdict p{font-size:15px;color:#1e293b;line-height:1.6;margin:0}
+.summary-table{width:100%;border-collapse:collapse;margin:40px 0}
+.summary-table th,.summary-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
+.summary-table th{background:#f8fafc;font-weight:600;color:#374151}
+.summary-table td:first-child{font-weight:600}
+.rf-highlight{background:#eff6ff;font-weight:600;color:#2563eb}
+@media(max-width:768px){.comp-grid{grid-template-columns:1fr}.alt-hero h1{font-size:28px}}
+</style></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">\u2b50 ReviewFlow</a>
+<div class="nav-links"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="/blog">Blog</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+
+<section class="alt-hero"><div class="container">
+<h1>ReviewFlow vs The Competition</h1>
+<p>See how ReviewFlow compares to expensive review management platforms. Same results, fraction of the cost (or free).</p>
+</div></section>
+
+<section style="padding:40px 0"><div class="container" style="max-width:800px">
+
+<table class="summary-table">
+<tr><th>Tool</th><th>Price</th><th>Free Plan</th><th>Setup Time</th><th>Review Gate</th></tr>
+<tr class="rf-highlight"><td>\u2b50 ReviewFlow</td><td>Free \u2013 $49/mo</td><td>\u2705 Yes</td><td>2 min</td><td>\u2705</td></tr>
+${competitors.map(c => '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.price) + '</td><td>' + (c.price === 'Free' ? '\u2705 (DIY)' : '\u274c No') + '</td><td>' + (c.name === 'Google Review Link (DIY)' ? '5 min' : '30+ min') + '</td><td>' + (c.name === 'Google Review Link (DIY)' ? '\u274c' : '\u2705') + '</td></tr>').join('')}
+</table>
+
+${competitors.map(c => '<div class="comp-card"><div class="comp-header"><h2>ReviewFlow vs ' + esc(c.name) + '</h2><span class="comp-price">' + esc(c.name) + ': ' + esc(c.price) + '</span></div><div class="comp-grid"><div class="comp-section pros"><h3>\u2705 ' + esc(c.name) + ' Strengths</h3><p>' + esc(c.pros) + '</p></div><div class="comp-section cons"><h3>\u274c ' + esc(c.name) + ' Drawbacks</h3><p>' + esc(c.cons) + '</p></div></div><div class="comp-verdict"><h3>Why ReviewFlow Instead</h3><p>' + esc(c.reviewflow) + '</p></div></div>').join('')}
+
+<div style="text-align:center;padding:40px 0">
+<h2 style="font-size:28px;margin-bottom:12px">Ready to try the simple alternative?</h2>
+<p style="color:#64748b;font-size:17px;margin-bottom:24px">Set up your review page in 2 minutes. No credit card, no contracts.</p>
+<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Start Free \u2192</a>
+</div>
+</div></section>
+
+${footer()}
+</body></html>`);
+});
+
+
+// ========== INDUSTRY LANDING PAGES (SEO) ==========
+const INDUSTRY_PAGES = [
+  { slug: 'restaurants', title: 'Google Review Management for Restaurants', metaTitle: 'Google Review Management for Restaurants | ReviewFlow', metaDesc: 'Get more 5-star Google reviews for your restaurant. Smart review routing, QR codes for tables, and automated review requests. Free plan available.', hero: 'Get More 5-Star Reviews<br>For Your Restaurant', heroSub: 'ReviewFlow helps restaurants collect Google reviews on autopilot. Place QR codes on tables, receipts, and takeout bags — happy diners leave reviews, unhappy ones send private feedback.', icon: '🍽️', benefits: [{ t: 'Table QR Codes', d: 'Print branded QR codes for every table. Diners scan and leave a review before they even leave.' },{ t: 'Smart Review Gate', d: 'Happy customers go to Google. Unhappy ones send feedback directly to you — saving your rating.' },{ t: 'SMS After Visits', d: 'Send automated review request texts after each visit with ready-made restaurant templates.' },{ t: 'Multi-Location', d: 'Manage reviews across all your restaurant locations from one dashboard.' }] },
+  { slug: 'dentists', title: 'Google Review Management for Dentists', metaTitle: 'Google Review Management for Dental Practices | ReviewFlow', metaDesc: 'Get more Google reviews for your dental practice. Automated review requests after appointments and QR codes for your office.', hero: 'Grow Your Dental Practice<br>With More Google Reviews', heroSub: 'ReviewFlow helps dental offices collect patient reviews automatically. Send review requests after every appointment and protect your online reputation.', icon: '🦷', benefits: [{ t: 'Post-Appointment Requests', d: 'Automatically send review requests via SMS or email after each appointment.' },{ t: 'Reputation Protection', d: 'Catch negative feedback before it hits Google. Respond privately and resolve issues.' },{ t: 'Office QR Codes', d: 'Place QR codes at the front desk, in operatories, or on appointment cards.' },{ t: 'Patient-Friendly', d: 'Simple, clean review page that takes 30 seconds. No app downloads required.' }] },
+  { slug: 'auto-shops', title: 'Google Review Management for Auto Repair Shops', metaTitle: 'Google Review Management for Auto Repair Shops | ReviewFlow', metaDesc: 'Get more Google reviews for your auto repair shop. QR codes for your waiting room, automated follow-ups after service, and smart review routing.', hero: 'More Google Reviews<br>For Your Auto Shop', heroSub: 'ReviewFlow helps auto repair shops build trust with more Google reviews. Send review requests after every service and turn happy customers into your best marketing.', icon: '🔧', benefits: [{ t: 'Waiting Room QR Codes', d: 'Customers scan while they wait. Easy reviews before they even pick up their car.' },{ t: 'Post-Service Follow-Up', d: 'Automated text or email after every repair asking for honest feedback.' },{ t: 'Protect Your Reputation', d: 'Catch complaints privately before they become 1-star reviews on Google.' },{ t: 'Build Trust', d: 'More reviews = more trust = more customers walking through your door.' }] },
+  { slug: 'salons', title: 'Google Review Management for Hair Salons & Spas', metaTitle: 'Google Review Management for Salons & Spas | ReviewFlow', metaDesc: 'Get more Google reviews for your salon or spa. Automated review requests after appointments, branded review pages, and QR codes.', hero: 'More Google Reviews<br>For Your Salon or Spa', heroSub: 'ReviewFlow helps salons and spas collect Google reviews automatically. Send review requests after every appointment and showcase your 5-star service.', icon: '💇', benefits: [{ t: 'Post-Visit Texts', d: 'Clients get a friendly text after their appointment asking for a quick review.' },{ t: 'Mirror QR Codes', d: 'Place QR codes at stations or the front desk — clients review while they admire their new look.' },{ t: 'Branded Experience', d: 'Custom review page with your salon name and colors for a professional touch.' },{ t: 'Catch Issues Early', d: 'Unhappy clients send feedback to you instead of posting a bad review publicly.' }] },
+  { slug: 'real-estate', title: 'Google Review Management for Real Estate Agents', metaTitle: 'Google Review Management for Real Estate Agents | ReviewFlow', metaDesc: 'Get more Google reviews as a real estate agent. Automated review requests after closings, branded review pages, and easy sharing.', hero: 'Build Your Real Estate Reputation<br>With More Google Reviews', heroSub: 'ReviewFlow helps real estate agents collect Google reviews from happy clients. Automate review requests after every closing and build the online reputation that wins listings.', icon: '🏠', benefits: [{ t: 'Post-Closing Requests', d: 'Automatically ask for reviews after every successful closing while the experience is fresh.' },{ t: 'Easy Sharing', d: 'Share your review link via text, email, or business card QR code.' },{ t: 'Protect Your Name', d: 'Catch unhappy clients before they post publicly. Resolve issues privately.' },{ t: 'Stand Out', d: 'Agents with more reviews get more leads. Period.' }] }
+];
+
+app.get('/for/:industry', (req, res) => {
+  const page = INDUSTRY_PAGES.find(p => p.slug === req.params.industry);
+  if (!page) return res.status(404).send('Not found');
+  const benefitsHtml = page.benefits.map(b => `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px"><h3 style="font-size:18px;margin-bottom:8px;color:#1e293b">${b.t}</h3><p style="color:#64748b;font-size:15px;line-height:1.6">${b.d}</p></div>`).join('');
+  const industryName = page.title.replace('Google Review Management for ', '');
+  res.send(`<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${page.metaTitle}</title>
+<meta name="description" content="${page.metaDesc}">
+<meta property="og:title" content="${page.metaTitle}">
+<meta property="og:description" content="${page.metaDesc}">
+<meta property="og:url" content="${BASE_URL}/for/${page.slug}">
+<meta property="og:type" content="website">
+<link rel="canonical" href="${BASE_URL}/for/${page.slug}">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","name":"${page.title}","description":"${page.metaDesc}","url":"${BASE_URL}/for/${page.slug}","publisher":{"@type":"Organization","name":"ReviewFlow","url":"${BASE_URL}"}}</script>
+<script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+${css()}
+</head><body>
+<nav class="nav"><div class="container nav-inner">
+<a href="/" class="nav-brand">⭐ ReviewFlow</a>
+<div class="nav-links"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="/blog">Blog</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+<section style="padding:80px 0;background:linear-gradient(135deg,#eff6ff,#f0fdf4);text-align:center">
+<div class="container">
+<div style="font-size:64px;margin-bottom:16px">${page.icon}</div>
+<h1 style="font-size:42px;font-weight:800;line-height:1.2;margin-bottom:20px">${page.hero}</h1>
+<p style="font-size:18px;color:#475569;max-width:640px;margin:0 auto 32px;line-height:1.7">${page.heroSub}</p>
+<a href="/signup" class="btn btn-primary" style="font-size:18px;padding:16px 40px">Start Free — No Credit Card</a>
+<p style="margin-top:12px;font-size:14px;color:#64748b">Set up in 2 minutes · Free forever plan available</p>
+</div></section>
+<section style="padding:64px 0"><div class="container">
+<h2 style="text-align:center;font-size:28px;margin-bottom:40px">Built for ${industryName}</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">${benefitsHtml}</div>
+</div></section>
+<section style="padding:64px 0;background:#f8fafc"><div class="container" style="text-align:center">
+<h2 style="font-size:28px;margin-bottom:16px">How It Works</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;max-width:800px;margin:32px auto 0">
+<div><div style="font-size:40px;font-weight:800;color:#2563eb">1</div><h3 style="margin:8px 0">Add Your Business</h3><p style="color:#64748b;font-size:15px">Enter your info and paste your Google review link.</p></div>
+<div><div style="font-size:40px;font-weight:800;color:#2563eb">2</div><h3 style="margin:8px 0">Share With Customers</h3><p style="color:#64748b;font-size:15px">Use QR codes, texts, or email to request reviews.</p></div>
+<div><div style="font-size:40px;font-weight:800;color:#2563eb">3</div><h3 style="margin:8px 0">Watch Reviews Grow</h3><p style="color:#64748b;font-size:15px">Happy customers leave Google reviews automatically.</p></div>
+</div></div></section>
+<section style="padding:64px 0;text-align:center"><div class="container">
+<h2 style="font-size:28px;margin-bottom:16px">Ready to Get More Reviews?</h2>
+<p style="color:#64748b;font-size:16px;margin-bottom:32px">Join hundreds of ${industryName.toLowerCase()} using ReviewFlow to grow their Google reviews.</p>
+<a href="/signup" class="btn btn-primary" style="font-size:18px;padding:16px 40px">Start Collecting Reviews — Free</a>
+</div></section>
+${footer()}
+</body></html>`);
+});
+app.use((req, res) => { res.status(404).send(notFoundPage()); });
+
+
 // ===== CAMPAIGNS API =====
 app.get('/api/campaigns', requireAuth, (req, res) => {
   const campaigns = db.prepare('SELECT * FROM campaigns WHERE user_id = ? ORDER BY created_at DESC').all(req.session.userId);
@@ -1819,103 +1999,5 @@ app.get('/campaigns', requireAuth, (req, res) => {
 });
 
 
-
-// ===== ALTERNATIVES PAGE =====
-app.get('/alternatives', (req, res) => {
-  const user = getUser(req);
-  const html = `<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ReviewFlow Alternatives — Compare Review Management Tools</title>
-<meta name="description" content="Compare ReviewFlow vs Birdeye, Podium, BrightLocal, Grade.us, and NiceJob. Find the best review management tool for your local business.">
-<meta property="og:title" content="ReviewFlow vs Competitors — Review Management Comparison">
-<meta property="og:description" content="Compare ReviewFlow to Birdeye, Podium, BrightLocal and more. Free plan available.">
-<meta property="og:url" content="https://alpha.abapture.ai/alternatives">
-<link rel="canonical" href="https://alpha.abapture.ai/alternatives">
-${css()}
-<style>
-.comp-table{width:100%;border-collapse:collapse;margin:32px 0}
-.comp-table th,.comp-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
-.comp-table th{background:#f8fafc;font-weight:600;color:#374151}
-.comp-table tr:hover{background:#f8fafc}
-.comp-card{border:1px solid #e2e8f0;border-radius:12px;padding:28px;margin-bottom:24px}
-.comp-card h3{font-size:20px;margin-bottom:8px}
-.price-tag{color:#ef4444;font-weight:700;font-size:18px}
-.verdict{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:14px}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links">${user?'<a href="/dashboard">Dashboard</a><a href="/logout">Log Out</a>':'<a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>'}</div></div></nav>
-<section style="padding:60px 0;background:linear-gradient(135deg,#eff6ff,#f8fafc)">
-<div class="container" style="max-width:800px;text-align:center">
-<h1 style="font-size:40px;font-weight:800;color:#1e293b;margin-bottom:16px">ReviewFlow vs. The Competition</h1>
-<p style="font-size:18px;color:#64748b;max-width:600px;margin:0 auto">See how ReviewFlow compares to expensive review management platforms. Spoiler: we offer a free plan.</p>
-</div></section>
-
-<section style="padding:60px 0"><div class="container" style="max-width:900px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:24px;text-align:center">Quick Comparison</h2>
-<div style="overflow-x:auto">
-<table class="comp-table">
-<thead><tr><th>Feature</th><th style="color:#2563eb">ReviewFlow</th><th>Birdeye</th><th>Podium</th><th>BrightLocal</th><th>Grade.us</th></tr></thead>
-<tbody>
-<tr><td><strong>Starting Price</strong></td><td style="color:#16a34a;font-weight:700">Free</td><td class="price-tag">$299/mo</td><td class="price-tag">$399/mo</td><td>$39/mo</td><td>$110/mo</td></tr>
-<tr><td>Smart Review Gating</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>QR Code Generator</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Custom Branding</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Free Tier</td><td style="color:#16a34a"><strong>Yes - full features</strong></td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td></tr>
-<tr><td>Setup Time</td><td><strong>2 minutes</strong></td><td>30+ min</td><td>Sales call</td><td>15 min</td><td>10 min</td></tr>
-<tr><td>Contract Required</td><td>No</td><td>Annual</td><td>Annual</td><td>No</td><td>No</td></tr>
-</tbody></table></div>
-
-<div style="margin-top:48px">
-<div class="comp-card">
-<h3>ReviewFlow vs Birdeye</h3>
-<p class="price-tag">Birdeye: $299/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Birdeye is a full-suite reputation platform. Great for enterprises — overkill and overpriced for most local businesses.</p>
-<div class="verdict">If you just need more Google reviews, ReviewFlow does the job at 1/10th the cost (or free).</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Podium</h3>
-<p class="price-tag">Podium: $399/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Podium bundles reviews with payments and messaging. Powerful but complex and expensive. Most small businesses only use the review features.</p>
-<div class="verdict">Unless you need payment processing and webchat, ReviewFlow delivers the core value for free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs BrightLocal</h3>
-<p class="price-tag">BrightLocal: $39/mo</p>
-<p style="margin-top:8px;color:#64748b">BrightLocal is primarily an SEO and citation tool. No review gating, no QR codes, no branded review pages.</p>
-<div class="verdict">Use BrightLocal for SEO audits, ReviewFlow for review collection. Or just use ReviewFlow free and save $39/mo.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Grade.us</h3>
-<p class="price-tag">Grade.us: $110/mo per seat</p>
-<p style="margin-top:8px;color:#64748b">Grade.us is built for agencies managing multiple clients. Per-seat pricing adds up fast.</p>
-<div class="verdict">Grade.us makes sense for agencies. For individual businesses, ReviewFlow is simpler and free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs NiceJob</h3>
-<p class="price-tag">NiceJob: $75/mo</p>
-<p style="margin-top:8px;color:#64748b">NiceJob automates review requests via email/SMS. Solid product, but $75/mo is steep for a small business starting out.</p>
-<div class="verdict">NiceJob has more automation, but ReviewFlow free tier gives you the essentials without the monthly bill.</div>
-</div>
-</div>
-
-<div style="text-align:center;margin-top:48px;padding:40px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:16px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:12px">Ready to try ReviewFlow?</h2>
-<p style="color:#64748b;margin-bottom:24px;font-size:16px">Free plan includes everything you need. Set up in 2 minutes.</p>
-<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Get Started Free</a>
-</div>
-</div></section>
-${footer()}
-</body></html>`;
-  res.send(html);
-});
-
-
-app.use((req, res) => { res.status(404).send(notFoundPage()); });
-
-
-
+// ===== ALTERNATIVES / COMPARISON PAGE =====
 app.listen(PORT, '0.0.0.0', () => console.log(`ReviewFlow running on port ${PORT} — ${BASE_URL}`));

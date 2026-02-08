@@ -99,7 +99,7 @@ label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#3741
 .footer-bottom{border-top:1px solid #334155;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px}
 .footer-bottom a{color:#94a3b8;text-decoration:none;margin-left:16px}.footer-bottom a:hover{color:#fff}
 @media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.nav-links{gap:12px}.footer-grid{grid-template-columns:1fr 1fr}.footer-bottom{flex-direction:column;text-align:center}}
-@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px;min-height:44px;display:inline-flex;align-items:center;padding:4px 8px}.btn-sm{padding:8px 14px;font-size:12px;min-height:44px}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px}.btn-sm{padding:6px 12px;font-size:12px}}
 </style>`;
 }
 
@@ -270,7 +270,7 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <p id="captureMsg" style="font-size:14px;margin-top:8px;display:none"></p>
 </div>
 </div></section>
-<script>async function captureEmail(e){e.preventDefault();var btn=e.target.querySelector('button'),inp=document.getElementById('captureEmailInput');btn.disabled=true;btn.textContent='Sending...';try{const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:inp.value})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list!';inp.value='';inp.disabled=true;btn.textContent='✓ Subscribed';btn.style.background='#22c55e'}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong';btn.disabled=false;btn.textContent='Notify Me'}}catch(err){btn.disabled=false;btn.textContent='Notify Me'}}</script>
+<script>async function captureEmail(e){e.preventDefault();const em=document.getElementById('captureEmailInput').value;const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list! We\\'ll keep you posted.';document.getElementById('captureEmailInput').value=''}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong'}}</script>
 ${footer()}
 </body></html>`);
 });
@@ -846,7 +846,7 @@ ${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:1
 <ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Response templates</li><li>Dedicated support</li></ul>
 ${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a>'}</div>
 </div></div>
-<script>let _checkoutBusy=false;async function checkout(p){if(_checkoutBusy)return;_checkoutBusy=true;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=true;b.style.opacity='.6';b.textContent='Redirecting to checkout...'});try{const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else{alert('Error');_checkoutBusy=false;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=false;b.style.opacity='1';b.textContent='Upgrade'})}}catch(e){alert('Error');_checkoutBusy=false}}</script>
+<script>async function checkout(p){const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else alert('Error')}</script>
 </body></html>`);
 });
 
@@ -1797,6 +1797,9 @@ app.get('/api/response-templates', requireAuth, (req, res) => {
   res.json(templates);
 });
 
+app.use((req, res) => { res.status(404).send(notFoundPage()); });
+
+
 // ===== CAMPAIGNS API =====
 app.get('/api/campaigns', requireAuth, (req, res) => {
   const campaigns = db.prepare('SELECT * FROM campaigns WHERE user_id = ? ORDER BY created_at DESC').all(req.session.userId);
@@ -1817,105 +1820,5 @@ app.post('/api/campaigns', requireAuth, (req, res) => {
 app.get('/campaigns', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-
-
-// ===== ALTERNATIVES PAGE =====
-app.get('/alternatives', (req, res) => {
-  const user = getUser(req);
-  const html = `<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ReviewFlow Alternatives — Compare Review Management Tools</title>
-<meta name="description" content="Compare ReviewFlow vs Birdeye, Podium, BrightLocal, Grade.us, and NiceJob. Find the best review management tool for your local business.">
-<meta property="og:title" content="ReviewFlow vs Competitors — Review Management Comparison">
-<meta property="og:description" content="Compare ReviewFlow to Birdeye, Podium, BrightLocal and more. Free plan available.">
-<meta property="og:url" content="https://alpha.abapture.ai/alternatives">
-<link rel="canonical" href="https://alpha.abapture.ai/alternatives">
-${css()}
-<style>
-.comp-table{width:100%;border-collapse:collapse;margin:32px 0}
-.comp-table th,.comp-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
-.comp-table th{background:#f8fafc;font-weight:600;color:#374151}
-.comp-table tr:hover{background:#f8fafc}
-.comp-card{border:1px solid #e2e8f0;border-radius:12px;padding:28px;margin-bottom:24px}
-.comp-card h3{font-size:20px;margin-bottom:8px}
-.price-tag{color:#ef4444;font-weight:700;font-size:18px}
-.verdict{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:14px}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links">${user?'<a href="/dashboard">Dashboard</a><a href="/logout">Log Out</a>':'<a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>'}</div></div></nav>
-<section style="padding:60px 0;background:linear-gradient(135deg,#eff6ff,#f8fafc)">
-<div class="container" style="max-width:800px;text-align:center">
-<h1 style="font-size:40px;font-weight:800;color:#1e293b;margin-bottom:16px">ReviewFlow vs. The Competition</h1>
-<p style="font-size:18px;color:#64748b;max-width:600px;margin:0 auto">See how ReviewFlow compares to expensive review management platforms. Spoiler: we offer a free plan.</p>
-</div></section>
-
-<section style="padding:60px 0"><div class="container" style="max-width:900px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:24px;text-align:center">Quick Comparison</h2>
-<div style="overflow-x:auto">
-<table class="comp-table">
-<thead><tr><th>Feature</th><th style="color:#2563eb">ReviewFlow</th><th>Birdeye</th><th>Podium</th><th>BrightLocal</th><th>Grade.us</th></tr></thead>
-<tbody>
-<tr><td><strong>Starting Price</strong></td><td style="color:#16a34a;font-weight:700">Free</td><td class="price-tag">$299/mo</td><td class="price-tag">$399/mo</td><td>$39/mo</td><td>$110/mo</td></tr>
-<tr><td>Smart Review Gating</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>QR Code Generator</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Custom Branding</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Free Tier</td><td style="color:#16a34a"><strong>Yes - full features</strong></td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td></tr>
-<tr><td>Setup Time</td><td><strong>2 minutes</strong></td><td>30+ min</td><td>Sales call</td><td>15 min</td><td>10 min</td></tr>
-<tr><td>Contract Required</td><td>No</td><td>Annual</td><td>Annual</td><td>No</td><td>No</td></tr>
-</tbody></table></div>
-
-<div style="margin-top:48px">
-<div class="comp-card">
-<h3>ReviewFlow vs Birdeye</h3>
-<p class="price-tag">Birdeye: $299/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Birdeye is a full-suite reputation platform. Great for enterprises — overkill and overpriced for most local businesses.</p>
-<div class="verdict">If you just need more Google reviews, ReviewFlow does the job at 1/10th the cost (or free).</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Podium</h3>
-<p class="price-tag">Podium: $399/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Podium bundles reviews with payments and messaging. Powerful but complex and expensive. Most small businesses only use the review features.</p>
-<div class="verdict">Unless you need payment processing and webchat, ReviewFlow delivers the core value for free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs BrightLocal</h3>
-<p class="price-tag">BrightLocal: $39/mo</p>
-<p style="margin-top:8px;color:#64748b">BrightLocal is primarily an SEO and citation tool. No review gating, no QR codes, no branded review pages.</p>
-<div class="verdict">Use BrightLocal for SEO audits, ReviewFlow for review collection. Or just use ReviewFlow free and save $39/mo.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Grade.us</h3>
-<p class="price-tag">Grade.us: $110/mo per seat</p>
-<p style="margin-top:8px;color:#64748b">Grade.us is built for agencies managing multiple clients. Per-seat pricing adds up fast.</p>
-<div class="verdict">Grade.us makes sense for agencies. For individual businesses, ReviewFlow is simpler and free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs NiceJob</h3>
-<p class="price-tag">NiceJob: $75/mo</p>
-<p style="margin-top:8px;color:#64748b">NiceJob automates review requests via email/SMS. Solid product, but $75/mo is steep for a small business starting out.</p>
-<div class="verdict">NiceJob has more automation, but ReviewFlow free tier gives you the essentials without the monthly bill.</div>
-</div>
-</div>
-
-<div style="text-align:center;margin-top:48px;padding:40px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:16px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:12px">Ready to try ReviewFlow?</h2>
-<p style="color:#64748b;margin-bottom:24px;font-size:16px">Free plan includes everything you need. Set up in 2 minutes.</p>
-<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Get Started Free</a>
-</div>
-</div></section>
-${footer()}
-</body></html>`;
-  res.send(html);
-});
-
-
-app.use((req, res) => { res.status(404).send(notFoundPage()); });
-
-
 
 app.listen(PORT, '0.0.0.0', () => console.log(`ReviewFlow running on port ${PORT} — ${BASE_URL}`));

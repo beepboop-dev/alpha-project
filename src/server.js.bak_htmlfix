@@ -99,7 +99,7 @@ label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#3741
 .footer-bottom{border-top:1px solid #334155;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px}
 .footer-bottom a{color:#94a3b8;text-decoration:none;margin-left:16px}.footer-bottom a:hover{color:#fff}
 @media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.nav-links{gap:12px}.footer-grid{grid-template-columns:1fr 1fr}.footer-bottom{flex-direction:column;text-align:center}}
-@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px;min-height:44px;display:inline-flex;align-items:center;padding:4px 8px}.btn-sm{padding:8px 14px;font-size:12px;min-height:44px}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px}.btn-sm{padding:6px 12px;font-size:12px}}
 </style>`;
 }
 
@@ -109,17 +109,17 @@ function footer() {
 <div><div class="footer-brand">⭐ ReviewFlow</div>
 <div class="footer-brand-desc">Help your local business collect more 5-star Google reviews with smart review routing.</div>
 <div class="footer-social">
-<a href="#" title="Twitter">𝕏</a>
-<a href="#" title="Facebook">f</a>
-<a href="#" title="LinkedIn">in</a>
-<a href="#" title="Instagram">📷</a>
+<a href="#" title="Twitter">𝕏</span>
+<a href="#" title="Facebook">f</span>
+<a href="#" title="LinkedIn">in</span>
+<a href="#" title="Instagram">📷</span>
 </div></div>
-<div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#demo">Live Demo</a><a href="/signup">Get Started</a></div>
-<div><h4>Resources</h4><a href="#">Help Center</a><a href="/blog">Blog</a><a href="#">API Docs</a><a href="#">Integrations</a></div>
-<div><h4>Company</h4><a href="#">About Us</a><a href="#">Contact</a><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></div>
+<div><h4>Product</h4><a href="#features">Features</span><a href="#pricing">Pricing</span><a href="#demo">Live Demo</span><a href="/signup">Get Started</span></div>
+<div><h4>Resources</h4><a href="#">Help Center</span><a href="/blog">Blog</span><a href="#">API Docs</span><a href="#">Integrations</span></div>
+<div><h4>Company</h4><a href="#">About Us</span><a href="#">Contact</span><a href="/terms">Terms of Service</span><a href="/privacy">Privacy Policy</span></div>
 </div>
 <div class="footer-bottom"><span>&copy; 2026 ReviewFlow. All rights reserved.</span>
-<div><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@reviewflow.com">Contact</a></div>
+<div><a href="/terms">Terms</span><a href="/privacy">Privacy</span><a href="mailto:support@reviewflow.com">Contact</span></div>
 </div></div></footer>`;
 }
 
@@ -128,7 +128,17 @@ app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ReviewFlow — Get More Google Reviews for Your Business</title>
 <meta name="description" content="Help your local business collect more 5-star Google reviews with smart review routing, QR codes, and analytics.">
+<meta property="og:title" content="ReviewFlow — Get More Google Reviews for Your Business">
+<meta property="og:description" content="Smart review collection tool for local businesses. Route happy customers to Google, catch unhappy ones privately. Free to start.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alpha.abapture.ai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReviewFlow — Google Review Management">
+<meta name="twitter:description" content="Collect more 5-star Google reviews with smart routing, QR codes, and analytics. Free for local businesses.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://alpha.abapture.ai">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ReviewFlow","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Smart Google review collection tool for local businesses. Route happy customers to Google Reviews and catch unhappy ones privately.","url":"https://alpha.abapture.ai"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is ReviewFlow?","acceptedAnswer":{"@type":"Answer","text":"ReviewFlow is a smart Google review management tool for local businesses. It helps you collect more 5-star reviews by routing happy customers to Google and catching unhappy ones privately."}},{"@type":"Question","name":"Is ReviewFlow free?","acceptedAnswer":{"@type":"Answer","text":"Yes! Free forever plan includes 1 location, unlimited reviews, QR codes, and analytics."}},{"@type":"Question","name":"How does review gating work?","acceptedAnswer":{"@type":"Answer","text":"Customers rate their experience. 4-5 stars go to Google Reviews. 1-3 stars see a private feedback form."}},{"@type":"Question","name":"How long does setup take?","acceptedAnswer":{"@type":"Answer","text":"Less than 2 minutes. Sign up, paste your Google review link, and start collecting."}},{"@type":"Question","name":"What businesses use ReviewFlow?","acceptedAnswer":{"@type":"Answer","text":"Restaurants, dental offices, salons, auto shops, real estate, law firms, medical practices, retail, gyms, and more."}}]}</script>
 ${css()}
 <style>
 .hero{padding:80px 0;text-align:center;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%)}
@@ -156,15 +166,15 @@ footer{padding:40px 0;text-align:center;color:#94a3b8;font-size:14px;border-top:
 @media(max-width:768px){.hero h1{font-size:32px}.hero p{font-size:16px}.features-grid,.steps,.pricing-grid{grid-template-columns:1fr}}
 @media(max-width:768px){.testimonials-grid{grid-template-columns:1fr !important}}
 @media(max-width:480px){.hero h1{font-size:26px}.hero .btn{display:block;margin:8px auto;width:90%;text-align:center}}
-</style></head><body><div style="background:#2563eb;color:white;text-align:center;padding:10px 16px;font-size:14px;font-weight:500">🚀 Launch Special: Free forever plan available — <a href="/signup" style="color:#fbbf24;text-decoration:underline">Get started now</a></div>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body><div style="background:#2563eb;color:white;text-align:center;padding:10px 16px;font-size:14px;font-weight:500">🚀 Launch Special: Free forever plan available — <a href="/signup" style="color:#fbbf24;text-decoration:underline">Get started now</span></div>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><a href="#features">Features</span><a href="#pricing">Pricing</span><a href="/login">Log In</span><a href="/signup" class="btn btn-primary btn-sm">Start Free</span></div></div></nav>
 
 <section class="hero"><div class="container">
 <h1>Get More <span>5-Star Reviews</span><br>Without the Hassle</h1>
 <p>ReviewFlow helps local businesses collect Google reviews on autopilot. Smart review routing sends happy customers to Google — and catches unhappy ones before they go public.</p>
-<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Start Collecting Reviews — Free</a>
-<a href="#demo" class="btn btn-secondary" style="padding:16px 32px;font-size:17px;margin-left:12px">Try Live Demo ↓</a>
+<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Start Collecting Reviews — Free</span>
+<a href="#demo" class="btn btn-secondary" style="padding:16px 32px;font-size:17px;margin-left:12px">Try Live Demo ↓</span>
 <p style="font-size:14px;color:#94a3b8;margin-top:12px">No credit card required · Set up in 2 minutes</p>
 </div></section>
 
@@ -189,8 +199,8 @@ footer{padding:40px 0;text-align:center;color:#94a3b8;font-size:14px;border-top:
 <div style="margin-top:20px;font-size:12px;color:#cbd5e1">Powered by <span style="color:#94a3b8">ReviewFlow</span></div>
 </div></div>
 <div style="text-align:center;margin-top:32px">
-<a href="#" onclick="var n=document.getElementById('demo-name').value||'Your Business';window.open('/demo/'+encodeURIComponent(n)+'?color='+encodeURIComponent(document.getElementById('demo-color').value),'_blank');return false" class="btn btn-secondary" style="padding:14px 28px;font-size:16px;margin-right:12px">Open Full Preview ↗</a>
-<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Create Your Review Page Free →</a></div>
+<a href="#" onclick="var n=document.getElementById('demo-name').value||'Your Business';window.open('/demo/'+encodeURIComponent(n)+'?color='+encodeURIComponent(document.getElementById('demo-color').value),'_blank');return false" class="btn btn-secondary" style="padding:14px 28px;font-size:16px;margin-right:12px">Open Full Preview ↗</span>
+<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Create Your Review Page Free →</span></div>
 </div>
 <script>
 function updateDemo(){var n=document.getElementById('demo-name').value||'Your Business Name';document.getElementById('dp-name').textContent=n;resetDemo()}
@@ -226,13 +236,13 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <div class="pricing-grid">
 <div class="pricing-card"><h3>Free</h3><div class="price">$0<span>/mo</span></div>
 <ul><li>1 location</li><li>Branded review page</li><li>QR code</li><li>Basic analytics</li><li>Smart review gate</li></ul>
-<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</a></div>
+<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</span></div>
 <div class="pricing-card featured"><h3>Starter</h3><div class="price">$29<span>/mo</span></div>
 <ul><li>Everything in Free</li><li>SMS &amp; email templates</li><li>Advanced analytics</li><li>Custom thank-you messages</li><li>Priority support</li></ul>
-<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</a></div>
+<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</span></div>
 <div class="pricing-card"><h3>Growth</h3><div class="price">$79<span>/mo</span></div>
 <ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Review response templates</li><li>Dedicated support</li></ul>
-<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a></div>
+<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</span></div>
 </div></div></section>
 
 <section style="padding:80px 0;background:#fff"><div class="container">
@@ -260,7 +270,7 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <section class="cta"><div class="container">
 <h2>Every Day Without Reviews Is a Day You Lose Customers</h2>
 <p>Businesses with more reviews get more clicks, more calls, and more customers.</p>
-<a href="/signup" class="btn btn-primary" style="padding:16px 48px;font-size:17px">Start Free — No Credit Card</a>
+<a href="/signup" class="btn btn-primary" style="padding:16px 48px;font-size:17px">Start Free — No Credit Card</span>
 <div style="margin-top:48px;padding-top:40px;border-top:1px solid #334155">
 <p style="font-size:16px;color:#cbd5e1;margin-bottom:16px">Not ready yet? Get notified when we launch new features.</p>
 <form id="emailCapture" style="display:flex;gap:12px;max-width:440px;margin:0 auto" onsubmit="captureEmail(event)">
@@ -270,7 +280,7 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <p id="captureMsg" style="font-size:14px;margin-top:8px;display:none"></p>
 </div>
 </div></section>
-<script>async function captureEmail(e){e.preventDefault();var btn=e.target.querySelector('button'),inp=document.getElementById('captureEmailInput');btn.disabled=true;btn.textContent='Sending...';try{const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:inp.value})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list!';inp.value='';inp.disabled=true;btn.textContent='✓ Subscribed';btn.style.background='#22c55e'}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong';btn.disabled=false;btn.textContent='Notify Me'}}catch(err){btn.disabled=false;btn.textContent='Notify Me'}}</script>
+<script>async function captureEmail(e){e.preventDefault();const em=document.getElementById('captureEmailInput').value;const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list! We\\'ll keep you posted.';document.getElementById('captureEmailInput').value=''}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong'}}</script>
 ${footer()}
 </body></html>`);
 });
@@ -305,8 +315,8 @@ function authPage(mode, error) {
 <title>${isLogin ? 'Log In' : 'Sign Up'} — ReviewFlow</title>${css()}
 <style>body{background:#f8fafc}.auth-wrap{max-width:440px;margin:80px auto;padding:0 24px}.auth-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:40px}
 .auth-card h1{font-size:28px;margin-bottom:8px;text-align:center}.auth-card .subtitle{color:#64748b;text-align:center;margin-bottom:32px}
-.auth-footer{text-align:center;margin-top:24px;font-size:14px;color:#64748b}.auth-footer a{color:#2563eb;text-decoration:none}</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div></div></div></nav>
+.auth-footer{text-align:center;margin-top:24px;font-size:14px;color:#64748b}.auth-footer a{color:#2563eb;text-decoration:none}</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span><div></div></div></nav>
 <div class="auth-wrap"><div class="auth-card">
 <h1>${isLogin ? 'Welcome Back' : 'Create Your Account'}</h1>
 <p class="subtitle">${isLogin ? 'Log in to your dashboard' : 'Start collecting reviews in 2 minutes'}</p>
@@ -317,7 +327,7 @@ ${!isLogin ? '<div class="form-group"><label>Business Name</label><input type="t
 <div class="form-group"><label>Password</label><input type="password" name="password" required minlength="6" placeholder="${isLogin?'Your password':'Create a password'}"></div>
 <button type="submit" class="btn btn-primary" style="width:100%;padding:14px">${isLogin ? 'Log In' : 'Create Account'}</button>
 </form>
-<div class="auth-footer">${isLogin ? "Don't have an account? <a href='/signup'>Sign up free</a>" : "Already have an account? <a href='/login'>Log in</a>"}</div>
+<div class="auth-footer">${isLogin ? "Don't have an account? <a href='/signup'>Sign up free</span>" : "Already have an account? <a href='/login'>Log in</span>"}</div>
 </div></div></body></html>`;
 }
 
@@ -325,9 +335,9 @@ ${!isLogin ? '<div class="form-group"><label>Business Name</label><input type="t
 function dashLayout(user, content) {
   const pb = user.plan === 'growth' ? 'badge-growth' : user.plan === 'starter' ? 'badge-starter' : 'badge-free';
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Dashboard — ReviewFlow</title>${css()}<style>body{background:#f8fafc}.dashboard{padding:32px 0}</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><span class="badge ${pb}">${user.plan.toUpperCase()}</span><a href="/review-analytics">📊 Analytics</a><a href="/response-templates">📝 Templates</a><a href="/pricing">Upgrade</a><a href="/logout">Log Out</a></div></div></nav>
+<title>Dashboard — ReviewFlow</title>${css()}<style>body{background:#f8fafc}.dashboard{padding:32px 0}</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><span class="badge ${pb}">${user.plan.toUpperCase()}</span><a href="/review-analytics">📊 Analytics</span><a href="/response-templates">📝 Templates</span><a href="/pricing">Upgrade</span><a href="/logout">Log Out</span></div></div></nav>
 <div class="dashboard"><div class="container">${content}</div></div></body></html>`;
 }
 
@@ -361,7 +371,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
   // Aggregate stats bar
   let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">
 <div><h1 style="font-size:28px;margin-bottom:4px">Dashboard</h1><p style="color:#64748b;font-size:14px">Welcome back${user.business_name ? ', '+esc(user.business_name) : ''}!</p></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/guides" class="btn btn-secondary btn-sm">🚀 Get Reviews</a><a href="/templates" class="btn btn-secondary btn-sm">📋 Templates</a><a href="/locations/new" class="btn btn-primary btn-sm">+ Add Location</a></div></div>`;
+<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/guides" class="btn btn-secondary btn-sm">🚀 Get Reviews</span><a href="/templates" class="btn btn-secondary btn-sm">📋 Templates</span><a href="/locations/new" class="btn btn-primary btn-sm">+ Add Location</span></div></div>`;
   
   html += `<div class="stat-grid" style="margin-bottom:24px">
 <div class="stat-card" style="border-left:4px solid #2563eb"><div class="stat-value">${aggTotal}</div><div class="stat-label">Total Reviews</div></div>
@@ -391,11 +401,11 @@ app.get('/dashboard', requireAuth, (req, res) => {
 <h3 style="font-size:17px;margin-bottom:16px">⚡ Quick Actions</h3>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
 <button onclick="navigator.clipboard.writeText('${reviewUrl}');this.innerHTML='✓ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Review Link',2000)" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📋 Copy Review Link</button>
-<a href="/locations/${firstLoc.id}/qr" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📱 Download QR Code</a>
-<a href="/r/${firstLoc.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">👁️ Preview Review Page</a>
-<a href="/locations/${firstLoc.id}/share" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📤 Send Review Request</a>
-<a href="/locations/${firstLoc.id}/style" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🎨 Page Style</a>
-<a href="/guides" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🚀 Get More Reviews</a>
+<a href="/locations/${firstLoc.id}/qr" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📱 Download QR Code</span>
+<a href="/r/${firstLoc.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">👁️ Preview Review Page</span>
+<a href="/locations/${firstLoc.id}/share" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">📤 Send Review Request</span>
+<a href="/locations/${firstLoc.id}/style" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🎨 Page Style</span>
+<a href="/guides" class="btn btn-secondary" style="text-align:center;padding:16px 12px;font-size:14px">🚀 Get More Reviews</span>
 </div></div>`;
   }
 
@@ -405,7 +415,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
     html += `<div class="card" style="text-align:center;padding:60px 20px"><div style="font-size:64px;margin-bottom:16px">🏪</div>
 <h2 style="font-size:24px;margin-bottom:8px">No reviews yet — share your link to get started!</h2>
 <p style="color:#64748b;margin:8px 0 24px;max-width:400px;display:inline-block">Add your first business location and start collecting reviews in under 2 minutes. It's free!</p>
-<div><a href="/locations/new" class="btn btn-primary" style="padding:14px 32px;font-size:16px">+ Add Your First Location</a></div>
+<div><a href="/locations/new" class="btn btn-primary" style="padding:14px 32px;font-size:16px">+ Add Your First Location</span></div>
 <div style="margin-top:32px;display:flex;justify-content:center;gap:32px;color:#94a3b8;font-size:13px">
 <div>✅ Free forever plan</div><div>✅ 2-minute setup</div><div>✅ No credit card</div></div></div>`;
   } else {
@@ -413,12 +423,12 @@ app.get('/dashboard', requireAuth, (req, res) => {
       html += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
 <div><h3 style="font-size:20px">${esc(l.business_name)}</h3><span style="color:#64748b;font-size:14px">${esc(l.business_type||'Business')}</span></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
-<a href="/r/${l.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Preview</a>
-<a href="/locations/${l.id}/qr" class="btn btn-secondary btn-sm">QR Code</a>
-<a href="/locations/${l.id}/share" class="btn btn-secondary btn-sm">Share</a>
-<a href="/locations/${l.id}/analytics" class="btn btn-secondary btn-sm">Analytics</a>
-<a href="/locations/${l.id}/style" class="btn btn-secondary btn-sm">Style</a>
-<a href="/locations/${l.id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+<a href="/r/${l.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Preview</span>
+<a href="/locations/${l.id}/qr" class="btn btn-secondary btn-sm">QR Code</span>
+<a href="/locations/${l.id}/share" class="btn btn-secondary btn-sm">Share</span>
+<a href="/locations/${l.id}/analytics" class="btn btn-secondary btn-sm">Analytics</span>
+<a href="/locations/${l.id}/style" class="btn btn-secondary btn-sm">Style</span>
+<a href="/locations/${l.id}/edit" class="btn btn-secondary btn-sm">Edit</span>
 </div></div>
 <div class="stat-grid">
 <div class="stat-card"><div class="stat-value">${l.views}</div><div class="stat-label">Page Views</div></div>
@@ -438,7 +448,7 @@ app.get('/locations/new', requireAuth, (req, res) => {
   const count = db.prepare('SELECT COUNT(*) as c FROM locations WHERE user_id = ?').get(user.id).c;
   const max = user.plan === 'growth' ? 5 : 1;
   if (count >= max && user.plan !== 'growth') {
-    return res.send(dashLayout(user, '<div class="card" style="text-align:center;padding:60px"><h2>Upgrade to Add More Locations</h2><p style="color:#64748b;margin:16px 0"><a href="/pricing" class="btn btn-primary">View Plans</a></p></div>'));
+    return res.send(dashLayout(user, '<div class="card" style="text-align:center;padding:60px"><h2>Upgrade to Add More Locations</h2><p style="color:#64748b;margin:16px 0"><a href="/pricing" class="btn btn-primary">View Plans</span></p></div>'));
   }
   res.send(locForm(user));
 });
@@ -497,7 +507,7 @@ ${[['blue','🔵 Blue (Default)'],['green','🟢 Green'],['purple','🟣 Purple'
 <div class="form-group"><label>Review Gate Threshold</label><select name="gate_threshold">${[3,4,5].map(n=>`<option value="${n}" ${(loc?.gate_threshold||4)==n?'selected':''}>${n}+ stars → Google</option>`).join('')}</select>
 <div class="form-hint">Below this rating → private feedback form</div></div>
 ${isEdit?`<div class="form-group"><label>Thank You Message</label><textarea name="thank_you_message" rows="2">${esc(loc?.thank_you_message||'')}</textarea></div>`:''}
-<div style="display:flex;gap:12px"><button type="submit" class="btn btn-primary">${isEdit?'Save Changes':'Create Location'}</button><a href="/dashboard" class="btn btn-secondary">Cancel</a></div>
+<div style="display:flex;gap:12px"><button type="submit" class="btn btn-primary">${isEdit?'Save Changes':'Create Location'}</button><a href="/dashboard" class="btn btn-secondary">Cancel</span></div>
 </form></div>
 ${isEdit?`<div class="card" style="margin-top:24px;border-color:#fecaca"><h3 style="color:#dc2626;margin-bottom:12px">Danger Zone</h3>
 <form method="POST" action="/locations/${loc.id}/delete" onsubmit="return confirm('Delete this location?')">
@@ -537,7 +547,7 @@ ${r.feedback?`<p style="margin-top:8px;color:#475569;font-size:14px">${esc(r.fee
 ${r.customer_name?`<p style="margin-top:4px;font-size:13px;color:#94a3b8">— ${esc(r.customer_name)}</p>`:''}</div></div>`).join('');
 
   res.send(dashLayout(user, `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
-<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Back</a>
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Back</span>
 <h1 style="font-size:28px">${esc(loc.business_name)} — Analytics</h1></div>
 <div class="stat-grid">
 <div class="stat-card"><div class="stat-value">${tv}</div><div class="stat-label">Page Views</div></div>
@@ -562,7 +572,7 @@ app.get('/review-analytics', requireAuth, (req, res) => {
   const locIds = locations.map(l => l.id);
   
   if (!locIds.length) {
-    return res.send(dashLayout(user, '<div style="text-align:center;padding:60px"><h1>Review Analytics</h1><p style="color:#64748b;margin:16px 0">Add a location first to see analytics.</p><a href="/locations/new" class="btn btn-primary">+ Add Location</a></div>'));
+    return res.send(dashLayout(user, '<div style="text-align:center;padding:60px"><h1>Review Analytics</h1><p style="color:#64748b;margin:16px 0">Add a location first to see analytics.</p><a href="/locations/new" class="btn btn-primary">+ Add Location</span></div>'));
   }
 
   const ph = locIds.map(() => '?').join(',');
@@ -597,7 +607,7 @@ app.get('/review-analytics', requireAuth, (req, res) => {
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">' +
     '<div><h1 style="font-size:28px">📊 Review Analytics Dashboard</h1>' +
     '<p style="color:#64748b;font-size:14px">Insights across all your locations</p></div>' +
-    '<a href="/dashboard" class="btn btn-secondary btn-sm">\u2190 Back to Dashboard</a></div>' +
+    '<a href="/dashboard" class="btn btn-secondary btn-sm">\u2190 Back to Dashboard</span></div>' +
     '<div class="stat-grid" style="margin-bottom:32px">' +
     '<div class="stat-card"><div class="stat-value">' + totalReviews + '</div><div class="stat-label">Total Reviews</div></div>' +
     '<div class="stat-card"><div class="stat-value" style="color:#f59e0b">' + avgRating + ' \u2605</div><div class="stat-label">Average Rating</div></div>' +
@@ -631,12 +641,12 @@ app.get('/locations/:id/qr', requireAuth, async (req, res) => {
   const url = `${BASE_URL}/r/${loc.slug}`;
   const qr = await QRCode.toDataURL(url, { width: 400, margin: 2 });
   res.send(dashLayout(user, `<div style="max-width:600px;margin:0 auto;text-align:center">
-<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;text-align:left;margin-bottom:16px">← Back</a>
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;text-align:left;margin-bottom:16px">← Back</span>
 <h1 style="font-size:28px;margin-bottom:8px">QR Code</h1><p style="color:#64748b;margin-bottom:24px">${esc(loc.business_name)}</p>
 <div class="card" style="padding:40px"><img src="${qr}" style="width:280px;height:280px;margin:0 auto;display:block">
 <p style="margin-top:24px;font-size:14px;color:#64748b;word-break:break-all">${url}</p>
 <div style="margin-top:24px;display:flex;gap:12px;justify-content:center">
-<a href="/locations/${loc.id}/qr.png" download="reviewflow-qr.png" class="btn btn-primary">Download PNG</a>
+<a href="/locations/${loc.id}/qr.png" download="reviewflow-qr.png" class="btn btn-primary">Download PNG</span>
 <button onclick="navigator.clipboard.writeText('${url}');this.textContent='Copied!'" class="btn btn-secondary">Copy Link</button></div></div>
 <div class="card" style="text-align:left;margin-top:16px"><h3 style="margin-bottom:12px">💡 Where to use your QR code</h3>
 <ul style="color:#475569;font-size:15px;list-style:disc;padding-left:20px;line-height:2">
@@ -660,7 +670,7 @@ app.get('/locations/:id/share', requireAuth, (req, res) => {
   const sms = `Hi! Thanks for visiting ${loc.business_name}. We'd love your feedback — takes 30 seconds: ${url}`;
   const emailBody = `Hi there,\n\nThank you for choosing ${loc.business_name}!\n\nWe'd really appreciate it if you could share your feedback:\n${url}\n\nThank you!\n${loc.business_name}`;
   res.send(dashLayout(user, `<div style="max-width:700px;margin:0 auto">
-<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;margin-bottom:16px">← Back</a>
+<a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px;display:block;margin-bottom:16px">← Back</span>
 <h1 style="font-size:28px;margin-bottom:24px">Share &amp; Templates — ${esc(loc.business_name)}</h1>
 <div class="card"><h3 style="margin-bottom:12px">📋 Your Review Link</h3>
 <div style="display:flex;gap:8px"><input type="text" value="${url}" readonly style="background:#f8fafc" id="link">
@@ -672,7 +682,7 @@ app.get('/locations/:id/share', requireAuth, (req, res) => {
 <div class="form-group"><label>Subject</label><input type="text" value="How was your experience at ${esc(loc.business_name)}?" readonly style="background:#f8fafc" id="subj"></div>
 <textarea id="ebody" rows="6" style="background:#f8fafc" readonly>${esc(emailBody)}</textarea>
 <button onclick="navigator.clipboard.writeText(document.getElementById('subj').value+'\\n\\n'+document.getElementById('ebody').value);this.textContent='Copied!'" class="btn btn-secondary btn-sm" style="margin-top:8px">Copy Email</button></div>
-<div class="card"><h3 style="margin-bottom:12px">🖨️ Print Materials</h3><a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">Get QR Code →</a></div></div>`));
+<div class="card"><h3 style="margin-bottom:12px">🖨️ Print Materials</h3><a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">Get QR Code →</span></div></div>`));
 });
 
 // ===== DEMO PREVIEW PAGE =====
@@ -698,8 +708,8 @@ app.get('/demo/:name', (req, res) => {
 .sb{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;background:${esc(c)};color:#fff}
 .result{display:none;text-align:center}.result.show{display:block}
 .pw{margin-top:32px;font-size:12px;color:#cbd5e1}
-</style></head><body>
-<div class="demo-bar"><span>🔍 This is a demo preview — <strong>${esc(name)}</strong></span><a href="/signup">Create Your Own →</a></div>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<div class="demo-bar"><span>🔍 This is a demo preview — <strong>${esc(name)}</strong></span><a href="/signup">Create Your Own →</span></div>
 <div class="rc">
 <div id="s1"><div class="bn">${esc(name)}</div>
 <div class="prompt">How was your experience?</div>
@@ -712,8 +722,8 @@ app.get('/demo/:name', (req, res) => {
 <label>What could we do better?</label><textarea rows="4" placeholder="Tell us about your experience..."></textarea></div>
 <button class="sb" id="sbtn" onclick="demoSubmit()">Submit</button></div>
 <div id="s3" class="result"><div style="font-size:64px;margin-bottom:16px" id="ri">🙏</div><div style="font-size:18px;color:#475569" id="rm"></div>
-<div style="margin-top:24px"><a href="/signup" style="display:inline-block;padding:12px 24px;background:${esc(c)};color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Get This For Your Business →</a></div></div>
-<div class="pw">Powered by <a href="/" style="color:#94a3b8;text-decoration:none">ReviewFlow</a></div></div>
+<div style="margin-top:24px"><a href="/signup" style="display:inline-block;padding:12px 24px;background:${esc(c)};color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Get This For Your Business →</span></div></div>
+<div class="pw">Powered by <a href="/" style="color:#94a3b8;text-decoration:none">ReviewFlow</span></div></div>
 <script>
 let rating=0;
 function sel(r){rating=r;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
@@ -767,7 +777,7 @@ app.get('/r/:slug', (req, res) => {
 .pw{margin-top:32px;font-size:12px;color:#cbd5e1}.pw a{color:#94a3b8;text-decoration:none}
 @media(max-width:480px){.rc{padding:32px 20px;border-radius:16px}.bn{font-size:22px}.star{font-size:42px;gap:6px}.prompt{font-size:16px}.sb{font-size:16px;padding:14px}}
 @media(max-width:360px){.star{font-size:36px}}
-</style></head><body>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
 <div class="rc">
 <div id="s1">${logoHtml}${showBranding?`<div class="bn">${esc(loc.business_name)}</div>`:''}
 ${showBizType&&loc.business_type?`<div class="bt">${esc(loc.business_type)}</div>`:''}
@@ -782,7 +792,7 @@ ${showBizType&&loc.business_type?`<div class="bt">${esc(loc.business_type)}</div
 <label>What could we do better?</label><textarea id="fb" rows="4" placeholder="Tell us about your experience..."></textarea></div>
 <button class="sb" onclick="submit()" id="sbtn">Submit</button></div>
 <div id="s3" class="result"><div class="ri" id="ri">🙏</div><div class="rm" id="rm"></div></div>
-<div class="pw">Powered by <a href="${BASE_URL}">ReviewFlow</a></div></div>
+<div class="pw">Powered by <a href="${BASE_URL}">ReviewFlow</span></div></div>
 <script>
 let rating=0;const th=${loc.gate_threshold};
 function sel(r){rating=r;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
@@ -831,22 +841,22 @@ app.get('/pricing', (req, res) => {
 .pc.ft{border-color:#2563eb}.pc h3{font-size:22px;margin-bottom:4px}
 .pc .pr{font-size:42px;font-weight:800;margin:16px 0}.pc .pr span{font-size:16px;color:#64748b;font-weight:400}
 .pc ul{list-style:none;text-align:left;margin:20px 0}.pc li{padding:8px 0;font-size:15px}.pc li::before{content:'✓ ';color:#22c55e;font-weight:700}
-@media(max-width:768px){.pg{grid-template-columns:1fr}}</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links">${loggedIn?'<a href="/dashboard">Dashboard</a><a href="/logout">Log Out</a>':'<a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>'}</div></div></nav>
+@media(max-width:768px){.pg{grid-template-columns:1fr}}</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links">${loggedIn?'<a href="/dashboard">Dashboard</span><a href="/logout">Log Out</span>':'<a href="/login">Log In</span><a href="/signup" class="btn btn-primary btn-sm">Sign Up</span>'}</div></div></nav>
 <div class="pw"><h1 style="text-align:center;font-size:36px;margin-bottom:40px">Choose Your Plan</h1>
 <div class="pg">
 <div class="pc"><h3>Free</h3><div class="pr">$0<span>/mo</span></div>
 <ul><li>1 location</li><li>Branded review page</li><li>QR code</li><li>Smart review gate</li><li>Basic analytics</li></ul>
-${loggedIn&&user.plan==='free'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':'<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</a>'}</div>
+${loggedIn&&user.plan==='free'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':'<a href="/signup" class="btn btn-secondary" style="width:100%">Get Started</span>'}</div>
 <div class="pc ft"><h3>Starter</h3><div class="pr">$29<span>/mo</span></div>
 <ul><li>Everything in Free</li><li>SMS &amp; email templates</li><li>Advanced analytics</li><li>Custom messages</li><li>Priority support</li></ul>
-${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('starter')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</a>'}</div>
+${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('starter')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-primary" style="width:100%">Start Free Trial</span>'}</div>
 <div class="pc"><h3>Growth</h3><div class="pr">$79<span>/mo</span></div>
 <ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Response templates</li><li>Dedicated support</li></ul>
-${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a>'}</div>
+${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</span>'}</div>
 </div></div>
-<script>let _checkoutBusy=false;async function checkout(p){if(_checkoutBusy)return;_checkoutBusy=true;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=true;b.style.opacity='.6';b.textContent='Redirecting to checkout...'});try{const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else{alert('Error');_checkoutBusy=false;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=false;b.style.opacity='1';b.textContent='Upgrade'})}}catch(e){alert('Error');_checkoutBusy=false}}</script>
+<script>async function checkout(p){const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else alert('Error')}</script>
 </body></html>`);
 });
 
@@ -939,8 +949,8 @@ body{background:#f8fafc}.onb-wrap{max-width:560px;margin:40px auto;padding:0 20p
 .onb-preview .preview-stars{font-size:32px;letter-spacing:4px}
 .onb-qr{width:200px;height:200px;margin:16px auto;display:block;border-radius:12px}
 @media(max-width:480px){.onb-card{padding:24px 20px}.onb-card h1{font-size:22px}}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</a><div></div></div></nav>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</span><div></div></div></nav>
 <div class="onb-wrap"><div class="onb-card">
 <h1>🎉 Welcome to ReviewFlow!</h1>
 <p class="subtitle">Let's get your review page live in 4 easy steps</p>
@@ -1041,14 +1051,14 @@ async function createLocation(){
     const d=await r.json();
     if(d.success){
       document.getElementById('ob-final').innerHTML='<div style="font-size:48px;margin-bottom:16px">🎉</div><h3 style="margin-bottom:8px">Your review page is live!</h3><p style="color:#64748b;margin-bottom:20px">Share this link with your customers:</p>'
-        +'<div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:20px;word-break:break-all"><a href="'+d.url+'" target="_blank" rel="noopener noreferrer" style="color:#16a34a;font-weight:600;font-size:16px">'+d.url+'</a></div>'
+        +'<div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:20px;word-break:break-all"><a href="'+d.url+'" target="_blank" rel="noopener noreferrer" style="color:#16a34a;font-weight:600;font-size:16px">'+d.url+'</span></div>'
         +(d.qr?'<img src="'+d.qr+'" class="onb-qr" alt="QR Code">':'')
-        +'<div style="display:flex;gap:12px;margin-top:20px;justify-content:center;flex-wrap:wrap"><a href="/dashboard" class="btn btn-primary" style="padding:14px 32px">Go to Dashboard →</a>'
+        +'<div style="display:flex;gap:12px;margin-top:20px;justify-content:center;flex-wrap:wrap"><a href="/dashboard" class="btn btn-primary" style="padding:14px 32px">Go to Dashboard →</span>'
         +'<button onclick="navigator.clipboard.writeText(\\''+d.url+'\\');this.textContent=\\'Copied!\\'" class="btn btn-secondary">Copy Link</button></div>';
     } else {
-      document.getElementById('ob-final').innerHTML='<div class="alert alert-error">'+d.error+'</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>';
+      document.getElementById('ob-final').innerHTML='<div class="alert alert-error">'+d.error+'</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</span>';
     }
-  }catch(e){document.getElementById('ob-final').innerHTML='<div class="alert alert-error">Something went wrong</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>'}
+  }catch(e){document.getElementById('ob-final').innerHTML='<div class="alert alert-error">Something went wrong</div><a href="/dashboard" class="btn btn-primary">Go to Dashboard</span>'}
 }
 function goStepUI(n){document.querySelectorAll('.onb-step').forEach(s=>s.classList.remove('active'));document.getElementById('step'+n).classList.add('active');for(let i=0;i<4;i++){const d=document.getElementById('dot'+i);d.className='step-dot'+(i<n?' done':i===n?' active':'')}}
 
@@ -1104,7 +1114,7 @@ async function searchPlaces() {
     } else if (d.fallback) {
       rd.innerHTML = '<div style="padding:12px;background:#fef3c7;border-radius:10px;font-size:13px;color:#92400e">' +
         '<p style="margin-bottom:8px"><strong>Tip:</strong> We couldn\\'t search automatically, but you can find your review link by:</p>' +
-        '<ol style="padding-left:18px;line-height:1.8"><li>Open <a href="' + d.searchUrl + '" target="_blank" rel="noopener noreferrer" style="color:#2563eb">' + esc_html(q) + ' on Google Maps ↗</a></li>' +
+        '<ol style="padding-left:18px;line-height:1.8"><li>Open <span style="color:#2563eb;font-weight:600">' + esc_html(q) + ' on Google Maps ↗</span></li>' +
         '<li>Find your business and look for "Write a review"</li><li>Copy the URL from the review page</li></ol></div>';
     } else {
       rd.innerHTML = '<div style="padding:12px;color:#64748b;font-size:14px;text-align:center">No results found. Try a different search or paste your link directly below.</div>';
@@ -1142,8 +1152,8 @@ app.post('/api/onboarding', requireAuth, async (req, res) => {
 
 // ===== TERMS & PRIVACY =====
 app.get('/terms', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Terms of Service — ReviewFlow</title>${css()}</head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div class="nav-links"><a href="/">Home</a></div></div></nav>
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Terms of Service — ReviewFlow</title>${css()}<script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span><div class="nav-links"><a href="/">Home</span></div></div></nav>
 <div class="container" style="max-width:720px;padding:60px 24px"><h1 style="font-size:32px;margin-bottom:8px">Terms of Service</h1><p style="color:#64748b;margin-bottom:32px">Last updated: February 2026</p>
 <div style="line-height:1.8;color:#475569">
 <h2 style="color:#1e293b;margin:24px 0 8px">1. Acceptance of Terms</h2><p>By using ReviewFlow, you agree to these terms. If you don't agree, please don't use our service.</p>
@@ -1152,13 +1162,13 @@ app.get('/terms', (req, res) => {
 <h2 style="color:#1e293b;margin:24px 0 8px">4. Acceptable Use</h2><p>You agree not to: use fake reviews, impersonate others, abuse the system, or violate any applicable laws.</p>
 <h2 style="color:#1e293b;margin:24px 0 8px">5. Billing & Subscriptions</h2><p>Paid plans are billed monthly. You can cancel at any time. Refunds are handled on a case-by-case basis.</p>
 <h2 style="color:#1e293b;margin:24px 0 8px">6. Limitation of Liability</h2><p>ReviewFlow is provided "as is." We make no warranties and are not liable for any damages arising from use of the service.</p>
-<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>Questions? Email us at <a href="mailto:support@reviewflow.com">support@reviewflow.com</a>.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>Questions? Email us at <a href="mailto:support@reviewflow.com">support@reviewflow.com</span>.</p>
 </div></div>${footer()}</body></html>`);
 });
 
 app.get('/privacy', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Privacy Policy — ReviewFlow</title>${css()}</head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a><div class="nav-links"><a href="/">Home</a></div></div></nav>
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Privacy Policy — ReviewFlow</title>${css()}<script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span><div class="nav-links"><a href="/">Home</span></div></div></nav>
 <div class="container" style="max-width:720px;padding:60px 24px"><h1 style="font-size:32px;margin-bottom:8px">Privacy Policy</h1><p style="color:#64748b;margin-bottom:32px">Last updated: February 2026</p>
 <div style="line-height:1.8;color:#475569">
 <h2 style="color:#1e293b;margin:24px 0 8px">1. Information We Collect</h2><p>We collect information you provide: email, business name, and review data from your customers (ratings, optional name/email, feedback text).</p>
@@ -1167,7 +1177,7 @@ app.get('/privacy', (req, res) => {
 <h2 style="color:#1e293b;margin:24px 0 8px">4. Data Retention</h2><p>We keep your data as long as your account is active. You can request deletion at any time by contacting us.</p>
 <h2 style="color:#1e293b;margin:24px 0 8px">5. Security</h2><p>We use industry-standard security measures including encryption, secure sessions, and hashed passwords.</p>
 <h2 style="color:#1e293b;margin:24px 0 8px">6. Cookies</h2><p>We use essential cookies for authentication. No tracking cookies or third-party analytics.</p>
-<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>For privacy questions, email <a href="mailto:support@reviewflow.com">support@reviewflow.com</a>.</p>
+<h2 style="color:#1e293b;margin:24px 0 8px">7. Contact</h2><p>For privacy questions, email <a href="mailto:support@reviewflow.com">support@reviewflow.com</span>.</p>
 </div></div>${footer()}</body></html>`);
 });
 
@@ -1197,7 +1207,7 @@ app.get('/templates', requireAuth, (req, res) => {
     ]},
   ];
 
-  let html = `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+  let html = `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</span>
 <h1 style="font-size:28px">📋 Ready-Made Templates</h1></div>
 <p style="color:#64748b;margin-bottom:8px">Copy-paste these templates to request reviews from your customers. Your business name and review link are already filled in!</p>`;
 
@@ -1233,7 +1243,7 @@ app.get('/guides', requireAuth, (req, res) => {
   const qrLink = loc ? `/locations/${loc.id}/qr` : '#';
 
   res.send(dashLayout(user, `<div style="max-width:800px;margin:0 auto">
-<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</span>
 <h1 style="font-size:28px">🚀 Get More Reviews</h1></div>
 <p style="color:#64748b;margin-bottom:32px">Proven strategies to collect more 5-star reviews. Each guide takes 5 minutes or less to implement.</p>
 
@@ -1246,7 +1256,7 @@ app.get('/guides', requireAuth, (req, res) => {
 <div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0">
 <h4 style="font-size:14px;color:#2563eb;margin-bottom:12px">📋 STEP-BY-STEP</h4>
 <ol style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
-<li><a href="${qrLink}" style="color:#2563eb">Download your QR code</a> as PNG</li>
+<li><a href="${qrLink}" style="color:#2563eb">Download your QR code</span> as PNG</li>
 <li>Open your receipt template in your POS system (Square, Toast, Clover, etc.)</li>
 <li>Add the QR code image to the bottom of your receipt</li>
 <li>Add text: <em>"Scan to leave us a review ⭐"</em></li>
@@ -1293,7 +1303,7 @@ Hi! Thanks for visiting <strong>${esc(bname)}</strong>. We'd love your feedback 
 <li>Add this line to your signature:</li>
 </ol>
 <div style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:16px;margin:8px 0 12px;font-size:14px;color:#1e293b">
-⭐ Love ${esc(bname)}? <a href="${esc(rlink)}" style="color:#2563eb">Leave us a review!</a>
+⭐ Love ${esc(bname)}? <a href="${esc(rlink)}" style="color:#2563eb">Leave us a review!</span>
 </div>
 <ol start="3" style="color:#475569;font-size:14px;line-height:2.2;padding-left:20px">
 <li>Save your signature</li>
@@ -1333,8 +1343,8 @@ We love hearing from our customers! ⭐<br>If you've visited <strong>${esc(bname
 <h3 style="font-size:20px;margin-bottom:8px">The Golden Rule of Reviews</h3>
 <p style="color:#475569;font-size:16px;max-width:500px;margin:0 auto 16px"><strong>Ask every customer, every time.</strong> Businesses that ask consistently get 5-10x more reviews than those that don't.</p>
 <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-<a href="/templates" class="btn btn-primary btn-sm">📋 View All Templates</a>
-${loc?`<a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">📱 Get QR Code</a>`:''}
+<a href="/templates" class="btn btn-primary btn-sm">📋 View All Templates</span>
+${loc?`<a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">📱 Get QR Code</span>`:''}
 </div>
 </div>
 </div>`));
@@ -1348,7 +1358,7 @@ app.get('/locations/:id/style', requireAuth, (req, res) => {
   const url = `${BASE_URL}/r/${loc.slug}`;
   
   res.send(dashLayout(user, `<div style="max-width:900px;margin:0 auto">
-<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</a>
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">← Dashboard</span>
 <h1 style="font-size:28px">🎨 Review Page Style — ${esc(loc.business_name)}</h1></div>
 <p style="color:#64748b;margin-bottom:24px">Choose how your review page looks to customers. Click to preview, then save.</p>
 
@@ -1378,7 +1388,7 @@ ${(loc.page_style||'professional')==='premium'?`
 
 <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
 <button onclick="saveStyle()" class="btn btn-primary" id="save-btn">Save Style</button>
-<a href="/r/${loc.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Preview Live Page ↗</a>
+<a href="/r/${loc.slug}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Preview Live Page ↗</span>
 <span id="save-msg" style="color:#16a34a;font-size:14px;display:none">✓ Saved!</span>
 </div>
 
@@ -1428,16 +1438,16 @@ function notFoundPage() {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Page Not Found — ReviewFlow</title>${css()}
 <style>body{background:#f8fafc;min-height:100vh;display:flex;flex-direction:column}
-.nf{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 24px}</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="/">Home</a><a href="/login">Log In</a></div></div></nav>
+.nf{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 24px}</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><a href="/">Home</span><a href="/login">Log In</span></div></div></nav>
 <div class="nf"><div>
 <div style="font-size:96px;margin-bottom:16px">🔍</div>
 <h1 style="font-size:48px;font-weight:800;color:#1e293b;margin-bottom:8px">404</h1>
 <p style="font-size:20px;color:#64748b;margin-bottom:32px">This page doesn't exist — but your next 5-star review does.</p>
 <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-<a href="/" class="btn btn-primary">Go Home</a>
-<a href="/signup" class="btn btn-secondary">Start Collecting Reviews</a>
+<a href="/" class="btn btn-primary">Go Home</span>
+<a href="/signup" class="btn btn-secondary">Start Collecting Reviews</span>
 </div></div></div>
 ${footer()}</body></html>`;
 }
@@ -1453,9 +1463,9 @@ body{background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);min-height:100vh
 .guide-card{background:#fff;border-radius:20px;padding:48px 40px;box-shadow:0 8px 32px rgba(0,0,0,.08)}
 .guide-preview{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:24px;margin:24px 0;text-align:left}
 .guide-preview li{padding:6px 0;color:#475569;font-size:15px}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="/blog">Blog</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><a href="/blog">Blog</span><a href="/signup" class="btn btn-primary btn-sm">Start Free</span></div></div></nav>
 <div class="guide-wrap"><div class="guide-card">
 <div style="font-size:64px;margin-bottom:16px">📘</div>
 <h1 style="font-size:32px;line-height:1.2;margin-bottom:12px">10 Ways to Get More 5-Star Google Reviews</h1>
@@ -1488,7 +1498,7 @@ const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'
 const d=await r.json();const m=document.getElementById('guideMsg');
 m.style.display='block';
 if(d.success||d.error==='Already signed up'){
-m.innerHTML='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:24px;margin-top:16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">✅</div><p style="font-weight:700;font-size:18px;margin-bottom:8px">Guide is on the way!</p><p style="color:#64748b;font-size:14px;margin-bottom:16px">Check your inbox. While you wait, try ReviewFlow free:</p><a href="/signup" class="btn btn-primary">Create Your Review Page →</a></div>';
+m.innerHTML='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:24px;margin-top:16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">✅</div><p style="font-weight:700;font-size:18px;margin-bottom:8px">Guide is on the way!</p><p style="color:#64748b;font-size:14px;margin-bottom:16px">Check your inbox. While you wait, try ReviewFlow free:</p><a href="/signup" class="btn btn-primary">Create Your Review Page →</span></div>';
 document.getElementById('guideForm').style.display='none';
 }else{m.innerHTML='<p style="color:#ef4444">Something went wrong. Try again.</p>'}}
 </script>
@@ -1500,18 +1510,18 @@ app.get('/blog', (req, res) => {
   const posts = BLOG_POSTS.map(p => `
     <article style="margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid #e2e8f0">
       <div style="font-size:13px;color:#64748b;margin-bottom:8px">${p.category} · ${p.date} · ${p.readTime}</div>
-      <h2 style="margin-bottom:8px"><a href="/blog/${p.slug}" style="color:#1e293b;text-decoration:none">${esc(p.title)}</a></h2>
+      <h2 style="margin-bottom:8px"><a href="/blog/${p.slug}" style="color:#1e293b;text-decoration:none">${esc(p.title)}</span></h2>
       <p style="color:#64748b;font-size:15px;margin-bottom:12px">${esc(p.description)}</p>
-      <a href="/blog/${p.slug}" style="color:#2563eb;font-weight:600;font-size:14px;text-decoration:none">Read more →</a>
+      <a href="/blog/${p.slug}" style="color:#2563eb;font-weight:600;font-size:14px;text-decoration:none">Read more →</span>
     </article>
   `).join('');
   res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Blog — ReviewFlow | Google Review Tips for Local Businesses</title>
 <meta name="description" content="Tips, strategies, and templates to help your local business get more Google reviews. From ReviewFlow.">
 <link rel="canonical" href="${BASE_URL}/blog">
-${css()}<style>.blog-wrap{max-width:720px;margin:0 auto;padding:48px 24px}</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="/blog">Blog</a><a href="/#pricing">Pricing</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+${css()}<style>.blog-wrap{max-width:720px;margin:0 auto;padding:48px 24px}</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><a href="/blog">Blog</span><a href="/#pricing">Pricing</span><a href="/login">Log In</span><a href="/signup" class="btn btn-primary btn-sm">Start Free</span></div></div></nav>
 <div class="blog-wrap">
 <h1 style="font-size:36px;margin-bottom:8px">ReviewFlow Blog</h1>
 <p style="color:#64748b;font-size:18px;margin-bottom:40px">Tips & strategies to get more Google reviews for your local business.</p>
@@ -1550,18 +1560,18 @@ ${css()}<style>
 .blog-content a{color:#2563eb;text-decoration:underline}
 .blog-content code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:14px}
 .blog-cta{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:2px solid #2563eb;border-radius:16px;padding:32px;text-align:center;margin:40px 0}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="/blog">Blog</a><a href="/#pricing">Pricing</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+</style><script data-goatcounter="https://abapture-alpha.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</span>
+<div class="nav-links"><a href="/blog">Blog</span><a href="/#pricing">Pricing</span><a href="/login">Log In</span><a href="/signup" class="btn btn-primary btn-sm">Start Free</span></div></div></nav>
 <div class="blog-wrap">
-<a href="/blog" style="color:#64748b;text-decoration:none;font-size:14px">← Back to Blog</a>
+<a href="/blog" style="color:#64748b;text-decoration:none;font-size:14px">← Back to Blog</span>
 <div style="font-size:13px;color:#64748b;margin:16px 0 8px">${post.category} · ${post.date} · ${post.readTime}</div>
 <h1 style="font-size:36px;line-height:1.2;margin-bottom:24px">${esc(post.title)}</h1>
 <div class="blog-content">${post.content}</div>
 <div class="blog-cta">
 <h3 style="font-size:22px;margin-bottom:8px">Ready to Get More Google Reviews?</h3>
 <p style="color:#64748b;margin-bottom:16px">Set up your branded review page in 2 minutes. Free forever for 1 location.</p>
-<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Start Free — No Credit Card</a>
+<a href="/signup" class="btn btn-primary" style="padding:14px 36px;font-size:16px">Start Free — No Credit Card</span>
 </div>
 </div>
 ${footer()}</body></html>`);
@@ -1625,7 +1635,7 @@ app.post('/api/proposals/from-template/:id', requireAuth, (req, res) => {
 
 app.get('/proposal-templates', requireAuth, (req, res) => {
   const user = getUser(req);
-  let html = '<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">&larr; Dashboard</a><h1 style="font-size:28px">&#x1f4c4; Proposal Template Library</h1></div>';
+  let html = '<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><a href="/dashboard" style="color:#64748b;text-decoration:none;font-size:14px">&larr; Dashboard</span><h1 style="font-size:28px">&#x1f4c4; Proposal Template Library</h1></div>';
   html += '<p style="color:#64748b;margin-bottom:24px">Start with a professional template and customize it for your client. Each template includes intro text, scope, timeline, pricing, and terms.</p>';
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px">';
   PROPOSAL_TEMPLATES.forEach(function(t) {
@@ -1705,7 +1715,7 @@ app.get('/response-templates', requireAuth, (req, res) => {
   html += '<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">';
   categories.forEach(c => {
     const active = category === c.id;
-    html += `<a href="/response-templates?category=${c.id}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;font-size:14px;font-weight:500;text-decoration:none;border:2px solid ${active ? c.color : '#e2e8f0'};background:${active ? c.color + '15' : '#fff'};color:${active ? c.color : '#64748b'}">${c.icon} ${c.label}</a>`;
+    html += `<a href="/response-templates?category=${c.id}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;font-size:14px;font-weight:500;text-decoration:none;border:2px solid ${active ? c.color : '#e2e8f0'};background:${active ? c.color + '15' : '#fff'};color:${active ? c.color : '#64748b'}">${c.icon} ${c.label}</span>`;
   });
   html += '</div>';
 
@@ -1797,6 +1807,9 @@ app.get('/api/response-templates', requireAuth, (req, res) => {
   res.json(templates);
 });
 
+app.use((req, res) => { res.status(404).send(notFoundPage()); });
+
+
 // ===== CAMPAIGNS API =====
 app.get('/api/campaigns', requireAuth, (req, res) => {
   const campaigns = db.prepare('SELECT * FROM campaigns WHERE user_id = ? ORDER BY created_at DESC').all(req.session.userId);
@@ -1817,105 +1830,5 @@ app.post('/api/campaigns', requireAuth, (req, res) => {
 app.get('/campaigns', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-
-
-// ===== ALTERNATIVES PAGE =====
-app.get('/alternatives', (req, res) => {
-  const user = getUser(req);
-  const html = `<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ReviewFlow Alternatives — Compare Review Management Tools</title>
-<meta name="description" content="Compare ReviewFlow vs Birdeye, Podium, BrightLocal, Grade.us, and NiceJob. Find the best review management tool for your local business.">
-<meta property="og:title" content="ReviewFlow vs Competitors — Review Management Comparison">
-<meta property="og:description" content="Compare ReviewFlow to Birdeye, Podium, BrightLocal and more. Free plan available.">
-<meta property="og:url" content="https://alpha.abapture.ai/alternatives">
-<link rel="canonical" href="https://alpha.abapture.ai/alternatives">
-${css()}
-<style>
-.comp-table{width:100%;border-collapse:collapse;margin:32px 0}
-.comp-table th,.comp-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
-.comp-table th{background:#f8fafc;font-weight:600;color:#374151}
-.comp-table tr:hover{background:#f8fafc}
-.comp-card{border:1px solid #e2e8f0;border-radius:12px;padding:28px;margin-bottom:24px}
-.comp-card h3{font-size:20px;margin-bottom:8px}
-.price-tag{color:#ef4444;font-weight:700;font-size:18px}
-.verdict{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:14px}
-</style></head><body>
-<nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links">${user?'<a href="/dashboard">Dashboard</a><a href="/logout">Log Out</a>':'<a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>'}</div></div></nav>
-<section style="padding:60px 0;background:linear-gradient(135deg,#eff6ff,#f8fafc)">
-<div class="container" style="max-width:800px;text-align:center">
-<h1 style="font-size:40px;font-weight:800;color:#1e293b;margin-bottom:16px">ReviewFlow vs. The Competition</h1>
-<p style="font-size:18px;color:#64748b;max-width:600px;margin:0 auto">See how ReviewFlow compares to expensive review management platforms. Spoiler: we offer a free plan.</p>
-</div></section>
-
-<section style="padding:60px 0"><div class="container" style="max-width:900px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:24px;text-align:center">Quick Comparison</h2>
-<div style="overflow-x:auto">
-<table class="comp-table">
-<thead><tr><th>Feature</th><th style="color:#2563eb">ReviewFlow</th><th>Birdeye</th><th>Podium</th><th>BrightLocal</th><th>Grade.us</th></tr></thead>
-<tbody>
-<tr><td><strong>Starting Price</strong></td><td style="color:#16a34a;font-weight:700">Free</td><td class="price-tag">$299/mo</td><td class="price-tag">$399/mo</td><td>$39/mo</td><td>$110/mo</td></tr>
-<tr><td>Smart Review Gating</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>QR Code Generator</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Custom Branding</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#16a34a">Yes</td><td style="color:#ef4444">No</td><td style="color:#16a34a">Yes</td></tr>
-<tr><td>Free Tier</td><td style="color:#16a34a"><strong>Yes - full features</strong></td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td><td style="color:#ef4444">No</td></tr>
-<tr><td>Setup Time</td><td><strong>2 minutes</strong></td><td>30+ min</td><td>Sales call</td><td>15 min</td><td>10 min</td></tr>
-<tr><td>Contract Required</td><td>No</td><td>Annual</td><td>Annual</td><td>No</td><td>No</td></tr>
-</tbody></table></div>
-
-<div style="margin-top:48px">
-<div class="comp-card">
-<h3>ReviewFlow vs Birdeye</h3>
-<p class="price-tag">Birdeye: $299/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Birdeye is a full-suite reputation platform. Great for enterprises — overkill and overpriced for most local businesses.</p>
-<div class="verdict">If you just need more Google reviews, ReviewFlow does the job at 1/10th the cost (or free).</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Podium</h3>
-<p class="price-tag">Podium: $399/mo+ (annual contract)</p>
-<p style="margin-top:8px;color:#64748b">Podium bundles reviews with payments and messaging. Powerful but complex and expensive. Most small businesses only use the review features.</p>
-<div class="verdict">Unless you need payment processing and webchat, ReviewFlow delivers the core value for free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs BrightLocal</h3>
-<p class="price-tag">BrightLocal: $39/mo</p>
-<p style="margin-top:8px;color:#64748b">BrightLocal is primarily an SEO and citation tool. No review gating, no QR codes, no branded review pages.</p>
-<div class="verdict">Use BrightLocal for SEO audits, ReviewFlow for review collection. Or just use ReviewFlow free and save $39/mo.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs Grade.us</h3>
-<p class="price-tag">Grade.us: $110/mo per seat</p>
-<p style="margin-top:8px;color:#64748b">Grade.us is built for agencies managing multiple clients. Per-seat pricing adds up fast.</p>
-<div class="verdict">Grade.us makes sense for agencies. For individual businesses, ReviewFlow is simpler and free.</div>
-</div>
-
-<div class="comp-card">
-<h3>ReviewFlow vs NiceJob</h3>
-<p class="price-tag">NiceJob: $75/mo</p>
-<p style="margin-top:8px;color:#64748b">NiceJob automates review requests via email/SMS. Solid product, but $75/mo is steep for a small business starting out.</p>
-<div class="verdict">NiceJob has more automation, but ReviewFlow free tier gives you the essentials without the monthly bill.</div>
-</div>
-</div>
-
-<div style="text-align:center;margin-top:48px;padding:40px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:16px">
-<h2 style="font-size:28px;font-weight:700;margin-bottom:12px">Ready to try ReviewFlow?</h2>
-<p style="color:#64748b;margin-bottom:24px;font-size:16px">Free plan includes everything you need. Set up in 2 minutes.</p>
-<a href="/signup" class="btn btn-primary" style="padding:16px 40px;font-size:17px">Get Started Free</a>
-</div>
-</div></section>
-${footer()}
-</body></html>`;
-  res.send(html);
-});
-
-
-app.use((req, res) => { res.status(404).send(notFoundPage()); });
-
-
 
 app.listen(PORT, '0.0.0.0', () => console.log(`ReviewFlow running on port ${PORT} — ${BASE_URL}`));

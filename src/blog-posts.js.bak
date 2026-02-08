@@ -1,0 +1,75 @@
+const BLOG_POSTS = [
+  {
+    "slug": "qr-code-review-collection",
+    "title": "How to Use QR Codes to Collect Google Reviews (2026 Guide)",
+    "description": "QR codes are the fastest way to get customers to leave reviews. Here is how to set them up for your business.",
+    "category": "Growth",
+    "date": "2026-02-01",
+    "readTime": "4 min read",
+    "content": "<h2>Why QR Codes for Reviews?</h2><p>QR codes eliminate friction. Instead of asking customers to search for your business on Google, find the review section, and write a review, they simply scan a code and they are there in seconds.</p><h2>Where to Place Your QR Codes</h2><ol><li><strong>Receipts</strong> - Print QR codes on every receipt</li><li><strong>Table tents</strong> - Perfect for restaurants and cafes</li><li><strong>Business cards</strong> - Add a review QR to the back</li><li><strong>Front desk signs</strong> - A simple sign saying <em>Enjoyed your visit? Scan to leave a review!</em></li><li><strong>Email signatures</strong> - Include a small QR code image</li><li><strong>Packaging</strong> - For retail and e-commerce businesses</li></ol><h2>Best Practices</h2><ul><li>Use a review management tool like ReviewFlow that generates branded QR codes automatically</li><li>Include a clear call-to-action near the QR code</li><li>Test the QR code on multiple devices before printing</li><li>Track scan rates to see which placements work best</li></ul><div class=\"blog-cta\"><h3>Generate Your Review QR Code in Seconds</h3><p>ReviewFlow creates branded QR codes that link to your smart review page.</p><a href=\"/signup\" class=\"btn btn-primary\">Get Your QR Code Free</a></div>"
+  },
+  {
+    "slug": "google-reviews-local-seo-ranking",
+    "title": "How Google Reviews Impact Your Local SEO Ranking in 2026",
+    "description": "Google reviews are a top ranking factor for local search. Learn exactly how they affect your visibility.",
+    "category": "SEO",
+    "date": "2026-02-05",
+    "readTime": "5 min read",
+    "content": "<h2>Reviews Are a Top 3 Local Ranking Factor</h2><p>According to multiple SEO studies, Google reviews are one of the top 3 factors that determine where your business appears in local search results and Google Maps. This includes review quantity, quality (star rating), velocity (how often you get new reviews), and recency.</p><h2>The Numbers</h2><ul><li>Businesses with 40+ reviews get <strong>2x more clicks</strong> from Google Maps</li><li>A 0.1 star increase in average rating can increase conversions by <strong>25%</strong></li><li>Businesses that respond to reviews see <strong>12% more</strong> new reviews</li><li>Review velocity (getting reviews consistently) matters more than total count</li></ul><h2>How to Improve Your Review Profile</h2><ol><li><strong>Collect reviews consistently</strong> - Use automated tools like ReviewFlow to ask every customer</li><li><strong>Respond to all reviews</strong> - Google rewards businesses that engage with reviewers</li><li><strong>Diversify keywords</strong> - Reviews that mention specific services help you rank for those terms</li><li><strong>Maintain a high rating</strong> - Use review gating to address issues privately before they become 1-star reviews</li></ol><h2>The ReviewFlow Advantage</h2><p>ReviewFlow helps you build a consistent review collection system. Smart routing ensures your Google profile gets more positive reviews while you address issues privately. The result: higher rankings, more clicks, more customers.</p><div class=\"blog-cta\"><h3>Boost Your Local SEO with More Reviews</h3><p>Start collecting Google reviews automatically with ReviewFlow.</p><a href=\"/signup\" class=\"btn btn-primary\">Start Free</a></div>"
+  },
+  {
+    "slug": "how-to-get-more-google-reviews",
+    "title": "How to Get More Google Reviews for Your Local Business",
+    "description": "Proven strategies to increase your Google review count and improve your local SEO ranking.",
+    "category": "Growth",
+    "date": "2025-12-15",
+    "readTime": "5 min read",
+    "content": "<h2>Why Google Reviews Matter</h2><p>Google reviews are the #1 factor customers use when choosing a local business. Businesses with more reviews rank higher in local search results and earn more trust from potential customers.</p><h2>5 Proven Strategies</h2><ol><li><strong>Ask at the right time</strong> — Request reviews within 1 hour of service completion when satisfaction is highest.</li><li><strong>Make it easy</strong> — Use a direct review link (like ReviewFlow generates) so customers can leave a review in 30 seconds.</li><li><strong>Use SMS</strong> — Text messages have a 98% open rate vs 20% for email. Send a quick text with your review link.</li><li><strong>Add QR codes</strong> — Put QR codes on receipts, business cards, and counter signs.</li><li><strong>Respond to every review</strong> — When customers see you respond to reviews, they are more likely to leave their own.</li></ol><div class=\"blog-cta\"><h3>Ready to automate your review collection?</h3><p>ReviewFlow makes it easy to collect, filter, and manage Google reviews.</p><a href=\"/signup\" class=\"btn btn-primary\">Start Free</a></div>"
+  },
+  {
+    "slug": "responding-to-negative-reviews",
+    "title": "How to Respond to Negative Google Reviews (Templates Included)",
+    "description": "Turn negative reviews into opportunities with these professional response templates.",
+    "category": "Strategy",
+    "date": "2025-12-20",
+    "readTime": "4 min read",
+    "content": "<h2>Do Not Ignore Negative Reviews</h2><p>53% of customers expect businesses to respond to negative reviews within a week. A thoughtful response can actually win back unhappy customers and show potential customers you care.</p><h2>Response Template</h2><blockquote>Hi [Name], thank you for your feedback. We are sorry to hear about your experience and would love the chance to make it right. Please contact us at [email/phone] so we can resolve this for you. — [Your Name], [Business]</blockquote><h2>Key Rules</h2><ol><li>Respond within 24-48 hours</li><li>Acknowledge their concern sincerely</li><li>Take the conversation offline</li><li>Never argue or get defensive</li><li>Follow up after resolving the issue</li></ol>"
+  },
+  {
+    "slug": "review-gating-explained",
+    "title": "What is Review Gating and How Does ReviewFlow Use It Ethically?",
+    "description": "Learn how smart review routing helps you collect more positive reviews while addressing negative feedback privately.",
+    "category": "Product",
+    "date": "2026-01-05",
+    "readTime": "3 min read",
+    "content": "<h2>What is Review Gating?</h2><p>Review gating is the practice of asking customers about their experience before directing them to leave a public review. Happy customers are guided to Google, while unhappy customers are given a private feedback form.</p><h2>How ReviewFlow Works</h2><p>ReviewFlow uses a simple star-rating gate. Customers who rate 4-5 stars are directed to your Google review page. Those who rate 1-3 stars are shown a private feedback form so you can address their concerns directly.</p><h2>Is it Ethical?</h2><p>Yes, when done right. ReviewFlow never prevents anyone from leaving a Google review — it simply routes the experience. All customers can still find and review your business on Google directly.</p>"
+  },
+  {
+    "slug": "google-review-management-guide-2026",
+    "title": "10 Google Review Management Tips Every Local Business Needs in 2026",
+    "description": "A complete guide to managing Google reviews — from collection to response strategies that boost your local SEO.",
+    "category": "Growth",
+    "date": "2026-02-08",
+    "readTime": "7 min read",
+    "content": "<h2>Why Google Review Management Matters More Than Ever</h2><p>In 2026, 93% of consumers read online reviews before visiting a local business. Google reviews directly impact your local search ranking, click-through rate, and conversion rate.</p><h2>1. Create a Review Collection System</h2><p>Build a system: after every transaction, send an automated review request. Tools like <a href=\\\"/ \\\">ReviewFlow</a> automate this entirely.</p><h2>2. Use Smart Review Routing</h2><p>Ask customers to rate first. 4-5 stars go to Google. 1-3 stars see a private feedback form.</p><h2>3. Respond to Every Review</h2><p>Businesses that respond to all reviews get <strong>12% more new reviews</strong>.</p><h2>4. Optimize Your Google Business Profile</h2><p>Complete profiles get 7x more clicks.</p><h2>5. Time Your Requests</h2><p>Ask within 1-2 hours. Waiting 24h reduces response by 40%.</p><h2>6. Use QR Codes</h2><p>Receipts, table tents, cards, counters. ReviewFlow generates them automatically.</p><h2>7. Train Staff</h2><p>A personal ask is most effective.</p><h2>8. Monitor Velocity</h2><p>5 reviews/week beats 200 old ones.</p><h2>9. Leverage in Marketing</h2><p>Social proof converts better than ads.</p><h2>10. Set Up Alerts</h2><p>Fast responses show Google you care.</p><div class=\\\"blog-cta\\\"><h3>Start Managing Reviews Today</h3><p>Free to start.</p><a href=\\\"/signup\\\" class=\\\"btn btn-primary\\\">Get Started Free</a></div>"
+  },
+  {
+    "slug": "best-review-management-software-small-business",
+    "title": "Best Review Management Software for Small Business in 2026 (Free & Paid)",
+    "description": "Compare the top review management tools for small businesses. Find out which one fits your budget and needs.",
+    "category": "Comparison",
+    "date": "2026-02-08",
+    "readTime": "8 min read",
+    "content": "<h2>Why Small Businesses Need Review Management Software</h2><p>Managing Google reviews manually is unsustainable. You need a system that collects reviews automatically, routes feedback intelligently, and helps you respond faster.</p><h2>1. ReviewFlow (Best Free Option)</h2><p><strong>Price:</strong> Free forever / $29 Starter / $79 Growth</p><p><strong>Best for:</strong> Local businesses wanting simple, effective review collection</p><ul><li>Smart review gating (4-5 stars to Google, 1-3 to private feedback)</li><li>Auto-generated QR codes</li><li>SMS and email campaign templates</li><li>Real-time analytics</li></ul><p><strong>Verdict:</strong> Best value. Genuinely free plan with all core features.</p><h2>2. Birdeye ($299/mo)</h2><p>Powerful but expensive. Best for multi-location enterprises.</p><h2>3. Podium ($399/mo)</h2><p>Great all-in-one but steep for small businesses.</p><h2>4. Grade.us ($110/mo)</h2><p>Best for marketing agencies managing multiple clients.</p><h2>5. NiceJob ($75/mo)</h2><p>Good for home services, basic features.</p><h2>The Bottom Line</h2><p><strong>ReviewFlow is the clear winner</strong> for small businesses. Only tool with a genuinely free plan including all core features.</p><div class=\"blog-cta\"><h3>Try ReviewFlow Free</h3><a href=\"/signup\" class=\"btn btn-primary\">Get Started Free</a></div>"
+  },
+  {
+    "slug": "review-request-sms-templates",
+    "title": "15 SMS Templates to Ask Customers for Google Reviews (Copy & Paste)",
+    "description": "Ready-to-use text message templates that get customers to leave Google reviews. Proven to increase review rates by 3x.",
+    "category": "Templates",
+    "date": "2026-02-08",
+    "readTime": "6 min read",
+    "content": "<h2>Why SMS for Review Requests?</h2><p>Text messages have a <strong>98% open rate</strong> vs 20% for email. SMS requests get 3-5x more responses.</p><h2>General Templates</h2><ol><li>Hi [Name]! Thanks for choosing [Business]. Could you share your experience? [Link] 🙏</li><li>Hi [Name], hope you enjoyed your visit! Your feedback helps us improve: [Link]</li><li>Hi [Name], how did we do? Leave a quick review: [Link]</li></ol><h2>Restaurant Templates</h2><ol start=\"4\"><li>Thanks for dining at [Restaurant]! Loved your meal? Tell Google! [Link]</li><li>Hope you enjoyed your meal! A quick review would make our day: [Link] ⭐</li></ol><h2>Healthcare Templates</h2><ol start=\"6\"><li>Thank you for your visit to [Practice]. Your feedback helps others: [Link]</li><li>Thanks for choosing [Dental Office]! We would love a review: [Link] 🦷</li></ol><h2>Home Services</h2><ol start=\"8\"><li>Happy with the work? A review helps us grow: [Link] 🔧</li><li>Thanks for trusting us with your home! Share your experience: [Link] 🏠</li></ol><h2>Salon/Spa</h2><ol start=\"10\"><li>Loving your new look? Share your experience: [Link] 💇</li><li>Feeling refreshed? Tell others about [Spa]: [Link] ✨</li></ol><h2>Professional Services</h2><ol start=\"12\"><li>Thank you for choosing [Firm]. Your review helps others find trusted professionals: [Link]</li><li>If we exceeded expectations, a review would be appreciated: [Link]</li></ol><h2>Follow-Up</h2><ol start=\"14\"><li>Friendly reminder — we would love to hear about your experience: [Link]</li><li>Last chance to share your feedback! Takes 30 seconds: [Link] 🙏</li></ol><h2>Tips</h2><ul><li>Personalize with customer name</li><li>Send within 1-2 hours of service</li><li>Keep under 160 characters</li><li>One link only</li></ul><div class=\"blog-cta\"><h3>Automate SMS Review Requests</h3><a href=\"/signup\" class=\"btn btn-primary\">Start Free</a></div>"
+  }
+];
+module.exports = BLOG_POSTS;
