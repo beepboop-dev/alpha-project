@@ -99,7 +99,7 @@ label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#3741
 .footer-bottom{border-top:1px solid #334155;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px}
 .footer-bottom a{color:#94a3b8;text-decoration:none;margin-left:16px}.footer-bottom a:hover{color:#fff}
 @media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.nav-links{gap:12px}.footer-grid{grid-template-columns:1fr 1fr}.footer-bottom{flex-direction:column;text-align:center}}
-@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px}.btn-sm{padding:6px 12px;font-size:12px}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-links{gap:8px}.nav-links a{font-size:12px;min-height:44px;display:inline-flex;align-items:center;padding:4px 8px}.btn-sm{padding:8px 14px;font-size:12px;min-height:44px}}
 </style>`;
 }
 
@@ -270,7 +270,7 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <p id="captureMsg" style="font-size:14px;margin-top:8px;display:none"></p>
 </div>
 </div></section>
-<script>async function captureEmail(e){e.preventDefault();const em=document.getElementById('captureEmailInput').value;const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list! We\\'ll keep you posted.';document.getElementById('captureEmailInput').value=''}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong'}}</script>
+<script>async function captureEmail(e){e.preventDefault();var btn=e.target.querySelector('button'),inp=document.getElementById('captureEmailInput');btn.disabled=true;btn.textContent='Sending...';try{const r=await fetch('/api/email-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:inp.value})});const d=await r.json();const m=document.getElementById('captureMsg');m.style.display='block';if(d.success){m.style.color='#4ade80';m.textContent='🎉 You\\'re on the list!';inp.value='';inp.disabled=true;btn.textContent='✓ Subscribed';btn.style.background='#22c55e'}else{m.style.color='#f87171';m.textContent=d.error||'Something went wrong';btn.disabled=false;btn.textContent='Notify Me'}}catch(err){btn.disabled=false;btn.textContent='Notify Me'}}</script>
 ${footer()}
 </body></html>`);
 });
@@ -846,7 +846,7 @@ ${loggedIn?(user.plan==='starter'?'<div class="btn btn-secondary" style="width:1
 <ul><li>Everything in Starter</li><li>Up to 5 locations</li><li>Team access</li><li>Response templates</li><li>Dedicated support</li></ul>
 ${loggedIn?(user.plan==='growth'?'<div class="btn btn-secondary" style="width:100%;opacity:.6">Current Plan</div>':`<button onclick="checkout('growth')" class="btn btn-primary" style="width:100%">Upgrade</button>`):'<a href="/signup" class="btn btn-secondary" style="width:100%">Start Free Trial</a>'}</div>
 </div></div>
-<script>async function checkout(p){const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else alert('Error')}</script>
+<script>let _checkoutBusy=false;async function checkout(p){if(_checkoutBusy)return;_checkoutBusy=true;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=true;b.style.opacity='.6';b.textContent='Redirecting to checkout...'});try{const r=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:p})});const d=await r.json();if(d.url)window.location.href=d.url;else{alert('Error');_checkoutBusy=false;document.querySelectorAll('[onclick*="checkout"]').forEach(b=>{b.disabled=false;b.style.opacity='1';b.textContent='Upgrade'})}}catch(e){alert('Error');_checkoutBusy=false}}</script>
 </body></html>`);
 });
 
