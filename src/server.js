@@ -286,6 +286,7 @@ app.post('/signup', (req, res) => {
   const id = uuidv4();
   db.prepare('INSERT INTO users (id, email, password_hash, business_name) VALUES (?,?,?,?)').run(id, email, bcrypt.hashSync(password, 10), business_name || '');
   req.session.userId = id;
+  req.session.justSignedUp = true;
   res.redirect('/onboarding');
 });
 
@@ -918,10 +919,17 @@ app.get('/onboarding', requireAuth, (req, res) => {
   const user = getUser(req);
   const hasLocation = db.prepare('SELECT COUNT(*) as c FROM locations WHERE user_id = ?').get(user.id).c > 0;
   if (hasLocation) return res.redirect('/dashboard');
+  const justSignedUp = req.session.justSignedUp;
+  if (justSignedUp) delete req.session.justSignedUp;
   res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Set Up Your Business — ReviewFlow</title>${css()}
 <style>
 body{background:#f8fafc}.onb-wrap{max-width:560px;margin:40px auto;padding:0 20px}
+.welcome-banner{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;text-align:center;animation:fadeIn .5s ease}
+.welcome-banner .wb-check{font-size:28px;margin-bottom:4px}
+.welcome-banner .wb-title{font-weight:700;color:#16a34a;font-size:16px}
+.welcome-banner .wb-detail{font-size:13px;color:#64748b;margin-top:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .onb-card{background:#fff;border-radius:20px;border:1px solid #e2e8f0;padding:40px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
 .onb-card h1{font-size:26px;text-align:center;margin-bottom:4px}
 .onb-card .subtitle{text-align:center;color:#64748b;margin-bottom:32px;font-size:15px}
@@ -941,7 +949,8 @@ body{background:#f8fafc}.onb-wrap{max-width:560px;margin:40px auto;padding:0 20p
 @media(max-width:480px){.onb-card{padding:24px 20px}.onb-card h1{font-size:22px}}
 </style></head><body>
 <nav class="nav"><div class="container nav-inner"><a href="/dashboard" class="nav-brand">⭐ ReviewFlow</a><div></div></div></nav>
-<div class="onb-wrap"><div class="onb-card">
+<div class="onb-wrap">${justSignedUp ? `<div class="welcome-banner"><div class="wb-check">✅</div><div class="wb-title">Account created! You're logged in as ${esc(user.email)}</div><div class="wb-detail">Now let's set up your first review page — takes under 2 minutes.</div></div>` : ''}
+<div class="onb-card">
 <h1>🎉 Welcome to ReviewFlow!</h1>
 <p class="subtitle">Let's get your review page live in 4 easy steps</p>
 <div class="step-indicators"><div class="step-dot active" id="dot0"></div><div class="step-dot" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
