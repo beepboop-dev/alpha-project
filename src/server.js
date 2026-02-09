@@ -8,6 +8,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const BLOG_POSTS = require('./blog-posts');
+const { COMPETITORS, comparisonPage } = require("./comparison-pages");
 
 const app = express();
 const PORT = 3101;
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.get("/health", (req, res) => res.json({ status: "ok", product: "ReviewFlow", timestamp: new Date().toISOString() }));
 app.use(session({ secret: 'reviewflow-k8x7m2p', resave: false, saveUninitialized: false, cookie: { maxAge: 30*24*60*60*1000 } }));
 
 const db = new Database(path.join(__dirname, 'reviewflow.db'));
@@ -115,7 +117,7 @@ function footer() {
 <a href="#" title="Instagram">📷</a>
 </div></div>
 <div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#demo">Live Demo</a><a href="/signup">Get Started</a></div>
-<div><h4>Resources</h4><a href="#">Help Center</a><a href="/blog">Blog</a><a href="#">API Docs</a><a href="#">Integrations</a></div>
+<div><h4>Resources</h4><a href="/industries">Industries</a><a href="/blog">Blog</a><a href="/tools/google-review-link-generator">Review Link Generator</a><a href="/tools/review-response-generator">Response Generator</a><a href="/tools/review-calculator">Review Calculator</a></div>
 <div><h4>Company</h4><a href="#">About Us</a><a href="#">Contact</a><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></div>
 </div>
 <div class="footer-bottom"><span>&copy; 2026 ReviewFlow. All rights reserved.</span>
@@ -123,11 +125,55 @@ function footer() {
 </div></div></footer>`;
 }
 
+
+// OG Image endpoint
+app.get("/og-image.svg", (req, res) => {
+  const title = (req.query.title || 'Get More 5-Star Google Reviews').slice(0, 60);
+  const subtitle = req.query.subtitle || 'Smart review routing for local businesses';
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send('<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e40af"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>' +
+    '<rect width="1200" height="630" fill="url(#bg)"/>' +
+    '<text x="80" y="120" font-family="sans-serif" font-size="42" fill="#93c5fd" font-weight="700">ReviewFlow</text>' +
+    '<text x="80" y="280" font-family="sans-serif" font-size="52" fill="white" font-weight="800">' + title.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</text>' +
+    '<text x="80" y="380" font-family="sans-serif" font-size="28" fill="#bfdbfe">' + subtitle.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</text>' +
+    '<text x="80" y="560" font-family="sans-serif" font-size="24" fill="#93c5fd">alpha.abapture.ai</text>' +
+    '<text x="900" y="300" font-family="sans-serif" font-size="72" text-anchor="middle" fill="white">&#11088;&#11088;&#11088;&#11088;&#11088;</text>' +
+    '<text x="900" y="380" font-family="sans-serif" font-size="24" text-anchor="middle" fill="#bfdbfe">Free forever plan</text>' +
+    '</svg>');
+});
+
+app.get("/og-image.png", async (req, res) => {
+  try {
+    const sharp = require("sharp");
+    const title = (req.query.title || "Get More 5-Star Google Reviews").slice(0, 60);
+    const subtitle = req.query.subtitle || "Smart review routing for local businesses";
+    const svg = Buffer.from('<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e40af"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><rect width="1200" height="630" fill="url(#bg)"/><text x="80" y="120" font-family="sans-serif" font-size="42" fill="#93c5fd" font-weight="700">ReviewFlow</text><text x="80" y="280" font-family="sans-serif" font-size="52" fill="white" font-weight="800">' + title.replace(/&/g,"&amp;").replace(/</g,"&lt;") + '</text><text x="80" y="380" font-family="sans-serif" font-size="28" fill="#bfdbfe">' + subtitle.replace(/&/g,"&amp;").replace(/</g,"&lt;") + '</text><text x="80" y="560" font-family="sans-serif" font-size="24" fill="#93c5fd">alpha.abapture.ai</text></svg>');
+    const png = await sharp(svg).png().toBuffer();
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "public, max-age=604800");
+    res.send(png);
+  } catch(e) { res.status(500).send("Error"); }
+});
+
 // ===== LANDING PAGE =====
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ReviewFlow — Get More Google Reviews for Your Business</title>
 <meta name="description" content="Help your local business collect more 5-star Google reviews with smart review routing, QR codes, and analytics.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alpha.abapture.ai">
+<meta property="og:title" content="ReviewFlow — Get More 5-Star Google Reviews">
+<meta property="og:description" content="Smart review routing sends happy customers to Google and catches unhappy ones before they go public.">
+<meta property="og:image" content="https://alpha.abapture.ai/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ReviewFlow — Get More 5-Star Google Reviews">
+<meta name="twitter:description" content="Smart review routing for local businesses. Free forever plan.">
+<meta name="twitter:image" content="https://alpha.abapture.ai/og-image.png">
+<link rel="canonical" href="https://alpha.abapture.ai">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ReviewFlow","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Smart Google review collection tool for local businesses. Route happy customers to Google Reviews and catch unhappy ones privately.","url":"https://alpha.abapture.ai"}</script>
 ${css()}
 <style>
@@ -158,7 +204,7 @@ footer{padding:40px 0;text-align:center;color:#94a3b8;font-size:14px;border-top:
 @media(max-width:480px){.hero h1{font-size:26px}.hero .btn{display:block;margin:8px auto;width:90%;text-align:center}}
 </style></head><body><div style="background:#2563eb;color:white;text-align:center;padding:10px 16px;font-size:14px;font-weight:500">🚀 Launch Special: Free forever plan available — <a href="/signup" style="color:#fbbf24;text-decoration:underline">Get started now</a></div>
 <nav class="nav"><div class="container nav-inner"><a href="/" class="nav-brand">⭐ ReviewFlow</a>
-<div class="nav-links"><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
+<div class="nav-links"><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/blog">Blog</a><a href="/tools/google-review-link-generator">Free Tools</a><a href="/login">Log In</a><a href="/signup" class="btn btn-primary btn-sm">Start Free</a></div></div></nav>
 
 <section class="hero"><div class="container">
 <h1>Get More <span>5-Star Reviews</span><br>Without the Hassle</h1>
@@ -256,6 +302,45 @@ else{dr.innerHTML='<div style="margin:16px 0"><div style="font-size:48px;margin-
 <div><div style="font-weight:600;font-size:14px">Dr. Sarah Park</div><div style="font-size:13px;color:#94a3b8">Park Family Dental</div></div></div></div>
 </div>
 </div></section>
+
+
+<section id="faq" style="padding:80px 0;background:#fff"><div class="container">
+<h2 style="font-size:36px;font-weight:800;text-align:center;margin-bottom:48px">Frequently Asked Questions</h2>
+<div style="max-width:720px;margin:0 auto">
+
+<details style="border-bottom:1px solid #e2e8f0;padding:20px 0" open>
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What is ReviewFlow and how does it work?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">ReviewFlow creates a branded review page for your business with a unique link and QR code. When a customer visits the page, they rate their experience. If they give 4-5 stars, they\u2019re redirected to leave a Google review. If they give 1-3 stars, their feedback comes to you privately \u2014 so you can fix the issue before it becomes a public review.</p>
+</details>
+
+<details style="border-bottom:1px solid #e2e8f0;padding:20px 0">
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Is ReviewFlow really free?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">Yes! The free plan includes 1 location, a branded review page, QR code, smart review routing, and basic analytics. No credit card required, no time limit. Paid plans ($29/mo and $79/mo) add features like SMS/email templates, advanced analytics, and multi-location support.</p>
+</details>
+
+<details style="border-bottom:1px solid #e2e8f0;padding:20px 0">
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How long does it take to set up?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">About 2 minutes. Sign up, enter your business name and Google review link, customize your page colors, and you\u2019re live. You can print the QR code or share the link immediately.</p>
+</details>
+
+<details style="border-bottom:1px solid #e2e8f0;padding:20px 0">
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Does this violate Google\u2019s review policies?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">ReviewFlow doesn\u2019t filter or block reviews. Every customer can leave a Google review if they choose. The smart routing simply makes it easier for happy customers to find the review page, while giving unhappy customers a direct channel to share feedback with you. This is similar to asking \u201cHow was your experience?\u201d before handing someone a review card.</p>
+</details>
+
+<details style="border-bottom:1px solid #e2e8f0;padding:20px 0">
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What types of businesses use ReviewFlow?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">Any local business that relies on Google reviews: dental offices, restaurants, salons, auto shops, medical practices, real estate agents, law firms, fitness studios, retail stores, and home service providers. If your customers find you on Google, ReviewFlow helps.</p>
+</details>
+
+<details style="padding:20px 0">
+<summary style="font-size:17px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How is ReviewFlow different from Podium or Birdeye?<span style="font-size:24px;color:#94a3b8">+</span></summary>
+<p style="color:#64748b;margin-top:12px;font-size:15px;line-height:1.7">Podium costs $249-599/month and Birdeye costs $299-399/month. ReviewFlow starts free and our paid plans are $29-79/month. We focus on doing one thing extremely well: collecting Google reviews with smart routing. No bloated features you\u2019ll never use.</p>
+</details>
+
+</div></div></section>
+
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is ReviewFlow and how does it work?","acceptedAnswer":{"@type":"Answer","text":"ReviewFlow creates a branded review page for your business with a unique link and QR code. When a customer visits the page, they rate their experience. If they give 4-5 stars, they are redirected to leave a Google review. If they give 1-3 stars, their feedback comes to you privately so you can fix the issue before it becomes a public review."}},{"@type":"Question","name":"Is ReviewFlow really free?","acceptedAnswer":{"@type":"Answer","text":"Yes! The free plan includes 1 location, a branded review page, QR code, smart review routing, and basic analytics. No credit card required, no time limit. Paid plans ($29/mo and $79/mo) add features like SMS/email templates, advanced analytics, and multi-location support."}},{"@type":"Question","name":"How long does it take to set up?","acceptedAnswer":{"@type":"Answer","text":"About 2 minutes. Sign up, enter your business name and Google review link, customize your page colors, and you are live. You can print the QR code or share the link immediately."}},{"@type":"Question","name":"Does this violate Google's review policies?","acceptedAnswer":{"@type":"Answer","text":"ReviewFlow does not filter or block reviews. Every customer can leave a Google review if they choose. The smart routing simply makes it easier for happy customers to find the review page, while giving unhappy customers a direct channel to share feedback with you."}},{"@type":"Question","name":"What types of businesses use ReviewFlow?","acceptedAnswer":{"@type":"Answer","text":"Any local business that relies on Google reviews: dental offices, restaurants, salons, auto shops, medical practices, real estate agents, law firms, fitness studios, retail stores, and home service providers."}},{"@type":"Question","name":"How is ReviewFlow different from Podium or Birdeye?","acceptedAnswer":{"@type":"Answer","text":"Podium costs $249-599/month and Birdeye costs $299-399/month. ReviewFlow starts free and paid plans are $29-79/month. We focus on doing one thing extremely well: collecting Google reviews with smart routing."}}]}</script>
 
 <section class="cta"><div class="container">
 <h2>Every Day Without Reviews Is a Day You Lose Customers</h2>
@@ -673,6 +758,7 @@ app.get('/locations/:id/share', requireAuth, (req, res) => {
 <div class="form-group"><label>Subject</label><input type="text" value="How was your experience at ${esc(loc.business_name)}?" readonly style="background:#f8fafc" id="subj"></div>
 <textarea id="ebody" rows="6" style="background:#f8fafc" readonly>${esc(emailBody)}</textarea>
 <button onclick="navigator.clipboard.writeText(document.getElementById('subj').value+'\\n\\n'+document.getElementById('ebody').value);this.textContent='Copied!'" class="btn btn-secondary btn-sm" style="margin-top:8px">Copy Email</button></div>
+<div class="card"><h3 style="margin-bottom:12px">📲 Quick Share</h3><p style="font-size:13px;color:#64748b;margin-bottom:12px">Open your messaging app with the review request pre-filled:</p><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="https://wa.me/?text=${encodeURIComponent(sms)}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff">📱 WhatsApp</a><a href="sms:?&body=${encodeURIComponent(sms)}" class="btn btn-sm" style="background:#5856D6;color:#fff">💬 SMS</a><a href="mailto:?subject=How%20was%20your%20experience%20at%20${encodeURIComponent(loc.business_name)}%3F&body=${encodeURIComponent(emailBody)}" class="btn btn-sm" style="background:#EA4335;color:#fff">✉️ Email</a></div></div>
 <div class="card"><h3 style="margin-bottom:12px">🖨️ Print Materials</h3><a href="/locations/${loc.id}/qr" class="btn btn-secondary btn-sm">Get QR Code →</a></div></div>`));
 });
 
@@ -1583,6 +1669,12 @@ app.get('/sitemap.xml', (req, res) => {
     { loc: '/blog', priority: '0.8' },
     { loc: '/signup', priority: '0.9' },
     { loc: '/login', priority: '0.5' },
+    { loc: '/tools/google-review-link-generator', priority: '0.8', lastmod: '2026-02-08' },
+    { loc: '/tools/review-response-generator', priority: '0.8', lastmod: '2026-02-08' },
+    { loc: '/tools/review-calculator', priority: '0.8', lastmod: '2026-02-08' },
+    ...COMPETITORS.map(c => ({ loc: '/compare/' + c.slug, priority: '0.8', lastmod: '2026-02-08' })),
+    { loc: '/industries' , priority: '0.7' },
+    ...['restaurants','dentists','salons','auto-repair','home-services','healthcare'].map(s => ({ loc: '/for/' + s, priority: '0.7'  , lastmod: '2026-02-09' })),
     ...BLOG_POSTS.map(p => ({ loc: '/blog/' + p.slug, priority: '0.7', lastmod: p.date }))
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => 
@@ -1829,6 +1921,10 @@ app.get('/campaigns', requireAuth, (req, res) => {
 
 
 
+// ===== TOOL PAGES =====
+require("./tool-page")(app, css, footer, esc, BASE_URL);
+const INDUSTRIES = require("./industry-pages")(app, css, footer, esc, BASE_URL);
+
 // ===== ALTERNATIVES PAGE =====
 app.get('/alternatives', (req, res) => {
   const user = getUser(req);
@@ -1922,6 +2018,32 @@ ${footer()}
   res.send(html);
 });
 
+
+// === COMPARISON PAGES ===
+app.get('/compare/:slug', (req, res) => {
+  const comp = COMPETITORS.find(c => c.slug === req.params.slug);
+  if (!comp) return res.status(404).send(notFoundPage());
+  res.send(comparisonPage(comp, css, footer));
+});
+app.get('/compare', (req, res) => {
+  res.redirect('/alternatives');
+});
+// IndexNow for Bing/Yandex instant indexing
+app.get('/a1b2c3d4e5f6g7h8.txt', (req, res) => { res.type('text').send('a1b2c3d4e5f6g7h8'); });
+
+// Ping IndexNow on demand (internal use)
+app.post('/api/indexnow', requireAuth, async (req, res) => {
+  const urls = req.body.urls || [];
+  if (!urls.length) return res.json({ error: 'no urls' });
+  try {
+    await fetch('https://api.indexnow.org/indexnow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ host: 'alpha.abapture.ai', key: 'a1b2c3d4e5f6g7h8', keyLocation: 'https://alpha.abapture.ai/a1b2c3d4e5f6g7h8.txt', urlList: urls })
+    });
+    res.json({ ok: true, pinged: urls.length });
+  } catch(e) { res.json({ error: e.message }); }
+});
 
 app.use((req, res) => { res.status(404).send(notFoundPage()); });
 
